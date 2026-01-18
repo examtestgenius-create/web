@@ -42,6 +42,36 @@ function setOptions(select, values, allLabel) {
   select.innerHTML = first + html;
 }
 
+// ====== PayFast Sandbox helper ======
+function payfastCheckout({ sku, title, amount = "10.00", email = "", whatsapp = "" }) {
+  const form = document.createElement("form");
+  form.action = "https://sandbox.payfast.co.za/eng/process";   // Sandbox endpoint
+  form.method = "POST";
+  form.style.display = "none";
+
+  // Sandbox demo merchant (for testing only)
+  form.innerHTML = `
+    <input type="hidden" name="merchant_id"  value="10000100">
+    <input type="hidden" name="merchant_key" value="46f0cd694581a">
+
+    <input type="hidden" name="return_url"   value="${location.origin}/success.html">
+    <input type="hidden" name="cancel_url"   value="${location.origin}/cancel.html">
+    <!-- Your Apps Script ITN endpoint -->
+    <input type="hidden" name="notify_url"   value="https://script.google.com/macros/s/AKfycbzwE4xmXVI4oIbo_hDU4CXT9ZS1skIuUhelCAmBhUP35Q5C51v0Emtk5KnAj0Pb3V6E/exec">
+
+    <!-- Use SKU so ITN can resolve links -->
+    <input type="hidden" name="m_payment_id" value="${escapeHtml(sku)}">
+    <input type="hidden" name="item_name"    value="${escapeHtml(title || sku)}">
+    <input type="hidden" name="amount"       value="${String(amount)}">
+
+    <!-- Optional buyer details -->
+    <input type="hidden" name="email_address" value="${escapeHtml(email)}">
+    <input type="hidden" name="custom_str1"   value="${escapeHtml(whatsapp)}">
+  `;
+  document.body.appendChild(form);
+  form.submit();
+}
+
 // ====== FILTER + RENDER ======
 function currentFilters() {
   return {
@@ -57,7 +87,6 @@ function passFilters(b, f) {
   if (!isAll(f.subject) && up(b.subject) !== up(f.subject)) return false;
   if (!isAll(f.year)    && up(b.year)    !== up(f.year))    return false;
 
-  // Accept "1" and "T1" as equivalent for term
   const bt = up(String(b.term)).replace(/^T/, "");
   const ft = up(String(f.term)).replace(/^T/, "");
   if (!isAll(f.term) && bt !== ft) return false;
@@ -66,7 +95,6 @@ function passFilters(b, f) {
 }
 
 function render(list) {
-  // Update the count line
   noteEl.textContent = `Loaded ${list.length} pack${list.length === 1 ? "" : "s"}.`;
 
   if (!list.length) {
@@ -74,14 +102,16 @@ function render(list) {
     return;
   }
 
-  // Build simple cards
   const html = list.map(b => {
     const items = (b.items || []).map(it => `
       <li>
         ${escapeHtml(it.paperName || "Paper")} —
-        ${escapeHtml(it.link)}Download</a>
+        <a hrefeHtml(it.link)}Download</a>
       </li>
     `).join("");
+
+    const price = (b.price ?? 10); // default R10 for Sandbox tests
+    const amount = /^\d+(\.\d{1,2})?$/.test(String(price)) ? price : "10.00";
 
     return `
       <article class="pack-card">
@@ -89,7 +119,6 @@ function render(list) {
         <p><strong>SKU:</strong> ${escapeHtml(b.sku)}</p>
         <ul>${items}</ul>
         <div class="actions">
-          <!-- TODO: Replace alert with PayFast checkout (Sandbox/Live) -->
           #Buy</a>
         </div>
       </article>
@@ -107,32 +136,27 @@ function applyFilters() {
 // ====== INIT ======
 async function initCatalog() {
   try {
-    // Initial UI state
     noteEl.textContent = "Loading catalog…";
     listEl.innerHTML = "";
 
-    // Fetch catalog from Apps Script
     const res = await fetch(CATALOG_URL, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    // Cache data
     ALL_BUNDLES = Array.isArray(data?.bundles) ? data.bundles : [];
 
-    // Build Subjects & Years from data (these were empty in your HTML)
+    // Populate Subjects & Years from data
     const subjects = uniqueSorted(ALL_BUNDLES.map(b => b.subject));
     const years    = uniqueSorted(ALL_BUNDLES.map(b => b.year), { numeric: true });
-
     setOptions(selSubject, subjects, "All subjects");
     setOptions(selYear,    years,    "All years");
 
-    // Ensure first view shows everything (avoid filtering out Grade‑12 test)
-    if (selGrade)   selGrade.value   = ""; // All grades
-    if (selTerm)    selTerm.value    = ""; // All terms
+    // Default filters = All
+    if (selGrade)   selGrade.value   = "";
+    if (selTerm)    selTerm.value    = "";
     if (selSubject) selSubject.value = "";
     if (selYear)    selYear.value    = "";
 
-    // First render + wire change handlers
     render(ALL_BUNDLES);
     [selGrade, selSubject, selYear, selTerm].forEach(el => {
       if (el) el.addEventListener("change", applyFilters);
