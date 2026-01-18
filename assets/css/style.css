@@ -84,3 +84,7 @@ label{display:grid;gap:6px;color:var(--muted);font-weight:700}
   border-radius:8px;
   text-decoration:none;
 }
+
+.filterbar select { font-weight: 600; }
+.filterbar select option[value=""] { color: #94a3b8; }
+
