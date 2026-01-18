@@ -74,9 +74,7 @@ function render(list) {
     const items = (b.items || []).map(it => `
       <li>
         ${escapeHtml(it.paperName || "Paper")} —
-        ${escapeHtml(it.link)}Download</a>
-      </li>
-    `).join("");
+        <a href="${escapeHtml(it.link)}" target="_blank"   `).join("");
 
     return `
       <article class="pack-card">
@@ -110,7 +108,7 @@ async function initCatalog() {
 
     ALL_BUNDLES = Array.isArray(data?.bundles) ? data.bundles : [];
 
-    // Build Subjects & Years from data (these were empty in your HTML)
+    // Build Subjects & Years (these were empty in your HTML)
     const subjects = uniqueSorted(ALL_BUNDLES.map(b => b.subject));
     const years    = uniqueSorted(ALL_BUNDLES.map(b => b.year), { numeric: true });
 
