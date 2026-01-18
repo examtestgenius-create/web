@@ -12,9 +12,9 @@ const CFG = {
   },
   payfast: {
     environment: 'live', // 'live' or 'sandbox'
-    merchant_id: 'YOUR_MERCHANT_ID',
-    merchant_key: 'YOUR_MERCHANT_KEY',
-    notify_url: 'YOUR_APPS_SCRIPT_ITN_URL',
+    merchant_id: '33250069',
+    merchant_key: '1qwkh8wrtemwh',
+    notify_url: 'https://script.google.com/macros/s/AKfycbxc0GRBKGyiSp3U4oeRIa5z-ZSlC0piN_kTfEhvfL7KucgBWVOwPqJUKUJTpNtvmm_g/exec',
     return_url: 'https://examtestpaper.co.za/thankyou.html',
     cancel_url: 'https://examtestpaper.co.za/cancel.html'
   },
