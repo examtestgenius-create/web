@@ -26,8 +26,8 @@ function uniqueSorted(values, { numeric=false } = {}) {
 
 function escapeHtml(s) {
   return String(s)
-    .replaceAll("&","&amp;").replaceAll("<","&lt;")
-    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
 function setOptions(select, values, allLabel) {
