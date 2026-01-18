@@ -49,14 +49,13 @@ function payfastCheckout({ sku, title, amount = "10.00", email = "", whatsapp = 
   form.method = "POST";
   form.style.display = "none";
 
-  // Sandbox demo merchant (for testing only)
+  // Sandbox demo merchant (for testing only). Switch to live creds and live URL when ready.
   form.innerHTML = `
     <input type="hidden" name="merchant_id"  value="10000100">
     <input type="hidden" name="merchant_key" value="46f0cd694581a">
 
     <input type="hidden" name="return_url"   value="${location.origin}/success.html">
     <input type="hidden" name="cancel_url"   value="${location.origin}/cancel.html">
-    <!-- Your Apps Script ITN endpoint -->
     <input type="hidden" name="notify_url"   value="https://script.google.com/macros/s/AKfycbzwE4xmXVI4oIbo_hDU4CXT9ZS1skIuUhelCAmBhUP35Q5C51v0Emtk5KnAj0Pb3V6E/exec">
 
     <!-- Use SKU so ITN can resolve links -->
@@ -64,7 +63,7 @@ function payfastCheckout({ sku, title, amount = "10.00", email = "", whatsapp = 
     <input type="hidden" name="item_name"    value="${escapeHtml(title || sku)}">
     <input type="hidden" name="amount"       value="${String(amount)}">
 
-    <!-- Optional buyer details -->
+    <!-- Optional buyer details (can be prefilled later) -->
     <input type="hidden" name="email_address" value="${escapeHtml(email)}">
     <input type="hidden" name="custom_str1"   value="${escapeHtml(whatsapp)}">
   `;
@@ -87,6 +86,7 @@ function passFilters(b, f) {
   if (!isAll(f.subject) && up(b.subject) !== up(f.subject)) return false;
   if (!isAll(f.year)    && up(b.year)    !== up(f.year))    return false;
 
+  // Accept "1" and "T1" as equivalent
   const bt = up(String(b.term)).replace(/^T/, "");
   const ft = up(String(f.term)).replace(/^T/, "");
   if (!isAll(f.term) && bt !== ft) return false;
@@ -106,7 +106,7 @@ function render(list) {
     const items = (b.items || []).map(it => `
       <li>
         ${escapeHtml(it.paperName || "Paper")} —
-        <a hrefeHtml(it.link)}Download</a>
+        ${escapeHtml(it.link)}Download</a>
       </li>
     `).join("");
 
@@ -145,19 +145,21 @@ async function initCatalog() {
 
     ALL_BUNDLES = Array.isArray(data?.bundles) ? data.bundles : [];
 
-    // Populate Subjects & Years from data
+    // Build Subjects & Years from data
     const subjects = uniqueSorted(ALL_BUNDLES.map(b => b.subject));
     const years    = uniqueSorted(ALL_BUNDLES.map(b => b.year), { numeric: true });
+
     setOptions(selSubject, subjects, "All subjects");
     setOptions(selYear,    years,    "All years");
 
-    // Default filters = All
+    // Ensure first view shows everything
     if (selGrade)   selGrade.value   = "";
     if (selTerm)    selTerm.value    = "";
     if (selSubject) selSubject.value = "";
     if (selYear)    selYear.value    = "";
 
     render(ALL_BUNDLES);
+
     [selGrade, selSubject, selYear, selTerm].forEach(el => {
       if (el) el.addEventListener("change", applyFilters);
     });
