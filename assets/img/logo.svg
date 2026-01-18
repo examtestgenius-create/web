@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="168" height="40" viewBox="0 0 168 40" role="img" aria-label="ExamTestGenius logo">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2F76FF"/>
+      <stop offset="100%" stop-color="#1f51b5"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" fill-rule="evenodd">
+    <rect rx="6" ry="6" x="0" y="4" width="40" height="32" fill="url(#g)"/>
+    <path d="M10 28l10-6 10 6V14l-10 6-10-6z" fill="#fff"/>
+    <!-- SA flag accent bar -->
+    <rect x="0" y="36" width="40" height="4" fill="#000"/>
+    <rect x="0" y="36" width="22" height="4" fill="#007A4D"/>
+    <polygon points="0,36 12,36 0,40" fill="#FFB81C"/>
+    <text x="52" y="28" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#0F172A">ExamTest<span style="fill:#2F76FF">Genius</span></text>
+  </g>
+</svg>
