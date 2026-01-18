@@ -15,12 +15,7 @@ let ALL_BUNDLES = [];
 
 // ====== UTIL ======
 const norm = (v) => (v ?? "").toString().trim();
-const up   = (v) => norm(v).toUpperCase();
-const isAll = (v) => v === "" || up(v) === "ALL";
-
-function uniqueSorted(values, { numeric=false } = {}) {
-  const arr = [...new Set(values.map(norm).filter(Boolean))];
-  return numeric ? arr.sort((a,b)=>Number(a)-Number(b))
+const(a)-Number(b))const up   = (v) => norm(v).toUpperCase();
                  : arr.sort((a,b)=>a.localeCompare(b, undefined, { numeric:true }));
 }
 
@@ -119,18 +114,11 @@ function render(list) {
         <p><strong>SKU:</strong> ${escapeHtml(b.sku)}</p>
         <ul>${items}</ul>
         <div class="actions">
-          #Buy</a>
-        </div>
-      </article>
-    `;
-  }).join("");
-
-  listEl.innerHTML = html;
-}
-
-function applyFilters() {
-  const f = currentFilters();
-  render(ALL_BUNDLES.filter(b => passFilters(b, f)));
+          <a class="btn" href="#" onclick="payfastCheckout({
+            sku: '${escapeHtml(b.sku)}',
+            title: '${escapeHtml(b.title || b.sku)}',
+            amount: '${amount}'
+         Filters(b, f)));
 }
 
 // ====== INIT ======
@@ -171,3 +159,7 @@ async function initCatalog() {
 }
 
 document.addEventListener("DOMContentLoaded", initCatalog);
+const isAll = (v) => v === "" || up(v) === "ALL";
+
+function uniqueSorted(values, { numeric=false } = {}) {
+  const arr = [...new Set(values.map(norm).filter(Boolean))];
