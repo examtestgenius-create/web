@@ -1,4 +1,3 @@
-
 // ====== CONFIG ======
 const CATALOG_URL =
   "https://script.google.com/macros/s/AKfycbzwE4xmXVI4oIbo_hDU4CXT9ZS1skIuUhelCAmBhUP35Q5C51v0Emtk5KnAj0Pb3V6E/exec?mode=catalog";
@@ -107,7 +106,9 @@ function render(list) {
     const items = (b.items || []).map(it => `
       <li>
         ${escapeHtml(it.paperName || "Paper")} —
-        <a href="${escapeHtml(it.link)}" target="_blank" rel).join("");
+        ${escapeHtml(it.link)}Download</a>
+      </li>
+    `).join("");
 
     const price = (b.price ?? 10); // default R10 for Sandbox tests
     const amount = /^\d+(\.\d{1,2})?$/.test(String(price)) ? price : "10.00";
@@ -118,11 +119,8 @@ function render(list) {
         <p><strong>SKU:</strong> ${escapeHtml(b.sku)}</p>
         <ul>${items}</ul>
         <div class="actions">
-          #Buy</a>
-        </div>
-      </article>
-    `;
-  }).join("");
+          <a class="btn" href="#" onclick="payfastCheckout({
+           
 
   listEl.innerHTML = html;
 }
