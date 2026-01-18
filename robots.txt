@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: /thankyou.html
-Disallow: /cancel.html
-Sitemap: https://examtestpaper.co.za/sitemap.xml
