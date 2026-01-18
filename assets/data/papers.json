@@ -1,0 +1,42 @@
+[
+  {
+    "sku": "G12-Maths-2024-Full",
+    "title": "Grade 12 • Mathematics • 2024 Full Pack (Papers + Memos)",
+    "grade": "Grade 12",
+    "subject": "Mathematics",
+    "term": "Term 4",
+    "type": "bundle",
+    "price": 149.0,
+    "cover": "assets/img/packs/g12-maths-2024.png"
+  },
+  {
+    "sku": "G12-Physics-2024-Nov",
+    "title": "Grade 12 • Physical Sciences • Nov 2024 (Papers + Memos)",
+    "grade": "Grade 12",
+    "subject": "Physical Sciences",
+    "term": "Term 4",
+    "type": "bundle",
+    "price": 149.0,
+    "cover": "assets/img/packs/g12-physics-2024-nov.png"
+  },
+  {
+    "sku": "G11-Maths-2023-Jun",
+    "title": "Grade 11 • Mathematics • June 2023 (Papers + Memos)",
+    "grade": "Grade 11",
+    "subject": "Mathematics",
+    "term": "Term 2",
+    "type": "bundle",
+    "price": 99.0,
+    "cover": "assets/img/packs/g11-maths-2023-jun.png"
+  },
+  {
+    "sku": "G10-EnglishHL-2023-Nov",
+    "title": "Grade 10 • English HL • Nov 2023 (Paper 1–3 + Memos)",
+    "grade": "Grade 10",
+    "subject": "English HL",
+    "term": "Term 4",
+    "type": "bundle",
+    "price": 99.0,
+    "cover": "assets/img/packs/g10-eng-hl-2023-nov.png"
+  }
+]

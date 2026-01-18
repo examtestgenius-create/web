@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>ExamTestGenius — Past Exam Papers South Africa (CAPS)</title>
+  <meta name="description" content="Browse Grade 8–12 CAPS past exam papers and memos by grade, subject, term, and paper type. Instant delivery via Email & WhatsApp."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <link rel="icon" href="assets/img/logo.svg"/>
+  <meta property="og:title" content="ExamTestGenius — Past Exam Papers South Africa"/>
+  <meta property="og:description" content="Grade 8–12 CAPS-aligned papers + memos. Instant delivery via Email & WhatsApp."/>
+  <meta property="og:image" content="assets/img/logo.svg"/>
+  <meta property="og:type" content="website"/>
+  <script type="application/ld+json">{
+    "@context":"https://schema.org",
+    "@type":"Organization",
+    "name":"ExamTestGenius",
+    "url":"https://examtestpaper.co.za",
+    "logo":"https://examtestpaper.co.za/assets/img/logo.svg",
+    "contactPoint": [{
+      "@type":"ContactPoint","email":"examtestgenius@gmail.com","contactType":"customer support","areaServed":"ZA","availableLanguage":["en","af"]
+    }]
+  }</script>
+</head>
+<body>
+<header class="header">
+  <div class="container nav">
+    <a class="logo" href="/"><img src="assets/img/logo.svg" alt="Logo">ExamTestGenius</a>
+    <nav class="menu">
+      <a href="index.html#guide">Guide</a>
+      <a href="catalog.html" aria-current="page">Exam papers</a>
+      <a href="downloads.html">Free downloads</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="cta"><a class="btn btn-outline" href="index.html">Home</a></div>
+  </div>
+</header>
+<section class="section">
+  <div class="container">
+    <h1 class="title">Browse CAPS Past Papers</h1>
+    <div class="filterbar">
+      <select data-filter="grade"><option value="">All grades</option><option>Grade 12</option><option>Grade 11</option><option>Grade 10</option><option>Grade 9</option><option>Grade 8</option></select>
+      <select data-filter="subject"><option value="">All subjects</option><option>Mathematics</option><option>Physical Sciences</option><option>English HL</option><option>English FAL</option></select>
+      <select data-filter="term"><option value="">All terms</option><option>Term 1</option><option>Term 2</option><option>Term 3</option><option>Term 4</option></select>
+      <select data-filter="type"><option value="">All types</option><option value="paper">Question paper</option><option value="memo">Memo</option></select>
+    </div>
+    <div id="catalog-list" class="list"></div>
+  </div>
+</section>
+<footer class="footer"><div class="container">Need help? Email <a href="mailto:examtestgenius@gmail.com">examtestgenius@gmail.com</a></div></footer>
+<script src="assets/js/app.js" defer></script>
+</body>
+</html>
