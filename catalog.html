@@ -1,1 +1,142 @@
-<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Exam papers — ExamTestGenius</title><meta name='description' content='Browse CAPS past exam paper packs by grade, subject and term.'><link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap' rel='stylesheet'><link rel='stylesheet' href='assets/css/style.css'><link rel='icon' href='assets/img/logo.svg'></head><body><header class='header'><div class='container nav'><a class='logo' href='index.html'><img src='assets/img/logo.svg' alt='Logo'>ExamTestGenius</a><nav class='menu'><a href='index.html#guide'>Guide</a><a href='catalog.html' aria-current='page'>Exam papers</a><a href='downloads.html'>Free downloads</a><a href='contact.html'>Contact</a></nav><div class='cta'><a class='btn btn-outline' href='index.html'>Home</a></div></div></header><section class='section'><div class='container'><h1 class='title'>Browse CAPS Past Papers</h1><div class='filterbar'><select data-filter='grade'><option value=''>All grades</option><option>12</option><option>11</option><option>10</option><option>9</option><option>8</option></select><select data-filter='subject'><option value=''>All subjects</option></select><select data-filter='year'><option value=''>All years</option></select><select data-filter='term'><option value=''>All terms</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div><div id='catalog-list' class='list'></div><div class='note' id='catalog-note' style='margin-top:12px'></div></div></section><footer class='footer'><div class='container'>Need help? Email <a href='mailto:examtestgenius@gmail.com'>examtestgenius@gmail.com</a></div></footer><script src='assets/js/app.js' defer></script></body></html>
+
+// ====== CONFIG ======
+const CATALOG_URL =
+  "https://script.google.com/macros/s/AKfycbzwE4xmXVI4oIbo_hDU4CXT9ZS1skIuUhelCAmBhUP35Q5C51v0Emtk5KnAj0Pb3V6E/exec?mode=catalog";
+
+// Hooks to your existing elements (from catalog.html)
+const selGrade   = document.querySelector('[data-filter="grade"]');
+const selSubject = document.querySelector('[data-filter="subject"]');
+const selYear    = document.querySelector('[data-filter="year"]');
+const selTerm    = document.querySelector('[data-filter="term"]');
+const listEl     = document.getElementById("catalog-list");
+const noteEl     = document.getElementById("catalog-note");
+
+// in-memory cache of all bundles
+let ALL_BUNDLES = [];
+
+// ====== UTIL ======
+const norm = (v) => (v ?? "").toString().trim();
+const up   = (v) => norm(v).toUpperCase();
+const isAll = (v) => v === "" || up(v) === "ALL";
+
+function uniqueSorted(values, { numeric=false } = {}) {
+  const arr = [...new Set(values.map(norm).filter(Boolean))];
+  return numeric ? arr.sort((a,b)=>Number(a)-Number(b))
+                 : arr.sort((a,b)=>a.localeCompare(b, undefined, { numeric:true }));
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+
+// Fill a <select> with options (preserving the first "All ..." option)
+function setOptions(select, values, allLabel) {
+  if (!select) return;
+  const first = select.querySelector('option[value=""]')?.outerHTML
+             || select.querySelector('option')?.outerHTML
+             || `<option value="">${allLabel}</option>`;
+  const html = values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+  select.innerHTML = first + html;
+}
+
+// ====== FILTERING & RENDER ======
+function currentFilters() {
+  return {
+    grade:   selGrade?.value   || "",
+    subject: selSubject?.value || "",
+    year:    selYear?.value    || "",
+    term:    selTerm?.value    || ""
+  };
+}
+
+function passFilters(b, f) {
+  if (!isAll(f.grade)   && up(b.grade)   !== up(f.grade))   return false;
+  if (!isAll(f.subject) && up(b.subject) !== up(f.subject)) return false;
+  if (!isAll(f.year)    && up(b.year)    !== up(f.year))    return false;
+
+  // accept "1" and "T1" as equivalent
+  const bt = up(String(b.term)).replace(/^T/, "");
+  const ft = up(String(f.term)).replace(/^T/, "");
+  if (!isAll(f.term) && bt !== ft) return false;
+
+  return true;
+}
+
+function render(list) {
+  noteEl.textContent = `Loaded ${list.length} pack${list.length === 1 ? "" : "s"}.`;
+
+  if (!list.length) {
+    listEl.innerHTML = `<p>No results for the current filter.</p>`;
+    return;
+  }
+
+  const html = list.map(b => {
+    const items = (b.items || []).map(it => `
+      <li>
+        ${escapeHtml(it.paperName || "Paper")} — 
+        ${escapeHtml(it.link)}Download</a>
+      </li>
+    `).join("");
+
+    return `
+      <article class="pack-card">
+        <h3>${escapeHtml(b.title || b.sku)}</h3>
+        <p><strong>SKU:</strong> ${escapeHtml(b.sku)}</p>
+        <ul>${items}</ul>
+        <div class="actions">
+          <!-- Wire this to PayFast later -->
+          #Buy</a>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  listEl.innerHTML = html;
+}
+
+function applyFilters() {
+  const f = currentFilters();
+  const filtered = ALL_BUNDLES.filter(b => passFilters(b, f));
+  render(filtered);
+}
+
+// ====== INIT ======
+async function initCatalog() {
+  try {
+    noteEl.textContent = "Loading catalog…";
+    listEl.innerHTML = "";
+
+    const res = await fetch(CATALOG_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    ALL_BUNDLES = Array.isArray(data?.bundles) ? data.bundles : [];
+
+    // Build Subjects & Years from data (these were empty in your HTML)
+    const subjects = uniqueSorted(ALL_BUNDLES.map(b => b.subject));
+    const years    = uniqueSorted(ALL_BUNDLES.map(b => b.year), { numeric:true });
+
+    setOptions(selSubject, subjects, "All subjects");
+    setOptions(selYear,    years,    "All years");
+
+    // Make sure we don’t accidentally filter everything out on first load
+    if (selGrade)  selGrade.value  = ""; // All grades
+    if (selTerm)   selTerm.value   = ""; // All terms
+    if (selSubject)selSubject.value= "";
+    if (selYear)   selYear.value   = "";
+
+    // First render + wire change handlers
+    render(ALL_BUNDLES);
+    [selGrade, selSubject, selYear, selTerm].forEach(el => {
+      if (el) el.addEventListener("change", applyFilters);
+    });
+  } catch (err) {
+    console.error("Catalog load failed:", err);
+    noteEl.textContent = "Could not load catalog.";
+    listEl.innerHTML = `<p style="color:#f66">Error loading catalog. See console for details.</p>`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", initCatalog);
