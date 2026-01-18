@@ -32,10 +32,13 @@ function escapeHtml(s) {
 
 function setOptions(select, values, allLabel) {
   if (!select) return;
-  const first = select.querySelector('option[value=""]')?.outerHTML
-             || select.querySelector("option")?.outerHTML
-             || `<option value="">${allLabel}</option>`;
-  const html = values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+  const first =
+    select.querySelector('option[value=""]')?.outerHTML ||
+    select.querySelector("option")?.outerHTML ||
+    `<option value="">${allLabel}</option>`;
+  const html = values
+    .map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`)
+    .join("");
   select.innerHTML = first + html;
 }
 
@@ -54,7 +57,7 @@ function passFilters(b, f) {
   if (!isAll(f.subject) && up(b.subject) !== up(f.subject)) return false;
   if (!isAll(f.year)    && up(b.year)    !== up(f.year))    return false;
 
-  // Accept "1" and "T1" as equivalent
+  // Accept "1" and "T1" as equivalent for term
   const bt = up(String(b.term)).replace(/^T/, "");
   const ft = up(String(f.term)).replace(/^T/, "");
   if (!isAll(f.term) && bt !== ft) return false;
@@ -63,6 +66,7 @@ function passFilters(b, f) {
 }
 
 function render(list) {
+  // Update the count line
   noteEl.textContent = `Loaded ${list.length} pack${list.length === 1 ? "" : "s"}.`;
 
   if (!list.length) {
@@ -70,6 +74,7 @@ function render(list) {
     return;
   }
 
+  // Build simple cards
   const html = list.map(b => {
     const items = (b.items || []).map(it => `
       <li>
@@ -84,10 +89,11 @@ function render(list) {
         <p><strong>SKU:</strong> ${escapeHtml(b.sku)}</p>
         <ul>${items}</ul>
         <div class="actions">
-          <!-- Wire this to PayFast later -->
+          <!-- TODO: Replace alert with PayFast checkout (Sandbox/Live) -->
           #Buy</a>
         </div>
-      </article>`;
+      </article>
+    `;
   }).join("");
 
   listEl.innerHTML = html;
@@ -101,30 +107,33 @@ function applyFilters() {
 // ====== INIT ======
 async function initCatalog() {
   try {
+    // Initial UI state
     noteEl.textContent = "Loading catalog…";
     listEl.innerHTML = "";
 
+    // Fetch catalog from Apps Script
     const res = await fetch(CATALOG_URL, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
+    // Cache data
     ALL_BUNDLES = Array.isArray(data?.bundles) ? data.bundles : [];
 
-    // Build Subjects & Years (these were empty in your HTML)
+    // Build Subjects & Years from data (these were empty in your HTML)
     const subjects = uniqueSorted(ALL_BUNDLES.map(b => b.subject));
     const years    = uniqueSorted(ALL_BUNDLES.map(b => b.year), { numeric: true });
 
     setOptions(selSubject, subjects, "All subjects");
     setOptions(selYear,    years,    "All years");
 
-    // Ensure first view shows everything (avoid filtering out your G12 test)
-    if (selGrade)   selGrade.value   = "";   // All grades
-    if (selTerm)    selTerm.value    = "";   // All terms
+    // Ensure first view shows everything (avoid filtering out Grade‑12 test)
+    if (selGrade)   selGrade.value   = ""; // All grades
+    if (selTerm)    selTerm.value    = ""; // All terms
     if (selSubject) selSubject.value = "";
     if (selYear)    selYear.value    = "";
 
+    // First render + wire change handlers
     render(ALL_BUNDLES);
-
     [selGrade, selSubject, selYear, selTerm].forEach(el => {
       if (el) el.addEventListener("change", applyFilters);
     });
