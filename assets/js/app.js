@@ -15,8 +15,14 @@ let ALL_BUNDLES = [];
 
 // ====== UTIL ======
 const norm = (v) => (v ?? "").toString().trim();
-const(a)-Number(b))const up   = (v) => norm(v).toUpperCase();
-                 : arr.sort((a,b)=>a.localeCompare(b, undefined, { numeric:true }));
+const up   = (v) => norm(v).toUpperCase();
+const isAll = (v) => v === "" || up(v) === "ALL";
+
+function uniqueSorted(values, { numeric=false } = {}) {
+  const arr = [...new Set(values.map(norm).filter(Boolean))];
+  return numeric
+    ? arr.sort((a, b) => Number(a) - Number(b))
+    : arr.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
 
 function escapeHtml(s) {
@@ -81,7 +87,7 @@ function passFilters(b, f) {
   if (!isAll(f.subject) && up(b.subject) !== up(f.subject)) return false;
   if (!isAll(f.year)    && up(b.year)    !== up(f.year))    return false;
 
-  // Accept "1" and "T1" as equivalent
+  // Accept "1" and "T1" as equivalent for term
   const bt = up(String(b.term)).replace(/^T/, "");
   const ft = up(String(f.term)).replace(/^T/, "");
   if (!isAll(f.term) && bt !== ft) return false;
@@ -101,9 +107,7 @@ function render(list) {
     const items = (b.items || []).map(it => `
       <li>
         ${escapeHtml(it.paperName || "Paper")} —
-        ${escapeHtml(it.link)}Download</a>
-      </li>
-    `).join("");
+        <a href="${escapeHtml(it.link)}" target="_blank" rel).join("");
 
     const price = (b.price ?? 10); // default R10 for Sandbox tests
     const amount = /^\d+(\.\d{1,2})?$/.test(String(price)) ? price : "10.00";
@@ -114,11 +118,18 @@ function render(list) {
         <p><strong>SKU:</strong> ${escapeHtml(b.sku)}</p>
         <ul>${items}</ul>
         <div class="actions">
-          <a class="btn" href="#" onclick="payfastCheckout({
-            sku: '${escapeHtml(b.sku)}',
-            title: '${escapeHtml(b.title || b.sku)}',
-            amount: '${amount}'
-         Filters(b, f)));
+          #Buy</a>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  listEl.innerHTML = html;
+}
+
+function applyFilters() {
+  const f = currentFilters();
+  render(ALL_BUNDLES.filter(b => passFilters(b, f)));
 }
 
 // ====== INIT ======
@@ -159,7 +170,3 @@ async function initCatalog() {
 }
 
 document.addEventListener("DOMContentLoaded", initCatalog);
-const isAll = (v) => v === "" || up(v) === "ALL";
-
-function uniqueSorted(values, { numeric=false } = {}) {
-  const arr = [...new Set(values.map(norm).filter(Boolean))];
