@@ -1,0 +1,22 @@
+[
+  {
+    "sku": "G12-Maths-2024-Full",
+    "title": "Grade 12 \u2022 Mathematics \u2022 2024 Full Pack (Papers + Memos)",
+    "grade": "Grade 12",
+    "subject": "Mathematics",
+    "term": "Term 4",
+    "type": "bundle",
+    "price": 149.0,
+    "cover": "assets/img/logo.svg"
+  },
+  {
+    "sku": "G11-Physics-2023-Jun",
+    "title": "Grade 11 \u2022 Physical Sciences \u2022 June 2023 (Papers + Memos)",
+    "grade": "Grade 11",
+    "subject": "Physical Sciences",
+    "term": "Term 2",
+    "type": "bundle",
+    "price": 99.0,
+    "cover": "assets/img/logo.svg"
+  }
+]
