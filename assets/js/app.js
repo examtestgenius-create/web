@@ -1,172 +1,127 @@
-/* ExamTestGenius front-end app (Google Sheet catalog + PayFast checkout)
- * Catalog is served from Apps Script Web App using doGet(mode=catalog).
- */
 
-const CFG = {
-  site: {
-    supportEmail: 'examtestgenius@gmail.com',
-    whatsappE164: '+27785766306',
-    whatsappDigits: '27785766306'
-  },
-  payfast: {
-    environment: 'live',
-    merchant_id: '33250069',
-    merchant_key: '1qwkh8wrtemwh',
-    notify_url: 'https://script.google.com/macros/s/AKfycbxc0GRBKGyiSp3U4oeRIa5z-ZSlC0piN_kTfEhvfL7KucgBWVOwPqJUKUJTpNtvmm_g/exec',
-    return_url: 'https://examtestpaper.co.za/thankyou.html',
-    cancel_url: 'https://examtestpaper.co.za/cancel.html'
-  },
-  api: {
-    appsScriptExec: 'https://script.google.com/macros/s/AKfycbxc0GRBKGyiSp3U4oeRIa5z-ZSlC0piN_kTfEhvfL7KucgBWVOwPqJUKUJTpNtvmm_g/exec',
-    catalogMode: 'catalog',
-    catalogKey: ''
-  }
-};
+// ====== CONFIG ======
+const CATALOG_URL =
+  "https://script.google.com/macros/s/AKfycbzwE4xmXVI4oIbo_hDU4CXT9ZS1skIuUhelCAmBhUP35Q5C51v0Emtk5KnAj0Pb3V6E/exec?mode=catalog";
 
-const $ = (sel, root=document) => root.querySelector(sel);
-const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-const params = new URLSearchParams(location.search);
+// HTML hooks (your existing markup)
+const selGrade   = document.querySelector('[data-filter="grade"]');
+const selSubject = document.querySelector('[data-filter="subject"]');
+const selYear    = document.querySelector('[data-filter="year"]');
+const selTerm    = document.querySelector('[data-filter="term"]');
+const listEl     = document.getElementById("catalog-list");
+const noteEl     = document.getElementById("catalog-note");
 
-function formatZAR(n) {
-  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', minimumFractionDigits: 2 }).format(n);
+// in-memory cache of all bundles
+let ALL_BUNDLES = [];
+
+// ====== UTIL ======
+const norm = (v) => (v ?? "").toString().trim();
+const up   = (v) => norm(v).toUpperCase();
+const isAll = (v) => v === "" || up(v) === "ALL";
+
+function uniqueSorted(values, { numeric=false } = {}) {
+  const arr = [...new Set(values.map(norm).filter(Boolean))];
+  if (numeric) return arr.sort((a,b) => Number(a) - Number(b));
+  return arr.sort((a,b) => a.localeCompare(b, undefined, { numeric:true }));
 }
 
-function toE164(waInput) {
-  let n = (waInput || '').replace(/[^\d+]/g, '');
-  if (n.startsWith('0')) n = '+27' + n.slice(1);
-  if (!n.startsWith('+')) n = '+27' + n;
-  return n;
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
-function payfastProcessUrl() {
-  return (CFG.payfast.environment === 'sandbox')
-    ? 'https://sandbox.payfast.co.za/eng/process'
-    : 'https://www.payfast.co.za/eng/process';
+// Fill a <select> with options (preserving the first "All ..." option)
+function setOptions(select, values, allLabel) {
+  if (!select) return;
+  const first = select.querySelector("option[value='']")?.outerHTML
+             || select.querySelector("option[value='ALL']")?.outerHTML
+             || `<option value="">${allLabel}</option>`;
+  const html = values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+  select.innerHTML = first + html;
 }
 
-async function fetchCatalog() {
-  const url = new URL(CFG.api.appsScriptExec);
-  url.searchParams.set('mode', CFG.api.catalogMode);
-  if (CFG.api.catalogKey) url.searchParams.set('key', CFG.api.catalogKey);
-  const res = await fetch(url.toString(), { cache: 'no-store' });
-  if (!res.ok) throw new Error('Catalog fetch failed: ' + res.status);
-  return await res.json();
+// ====== FILTERING & RENDER ======
+function currentFilters() {
+  return {
+    grade:   selGrade   ? selGrade.value   : "",
+    subject: selSubject ? selSubject.value : "",
+    year:    selYear    ? selYear.value    : "",
+    term:    selTerm    ? selTerm.value    : ""
+  };
 }
 
-function uniq(arr) {
-  return Array.from(new Set(arr.filter(Boolean)));
+function passFilters(b, f) {
+  if (!isAll(f.grade)   && up(b.grade)   !== up(f.grade))   return false;
+  if (!isAll(f.subject) && up(b.subject) !== up(f.subject)) return false;
+  if (!isAll(f.year)    && up(b.year)    !== up(f.year))    return false;
+
+  // accept "1" and "T1" as the same
+  const bt = up(String(b.term)).replace(/^T/, "");
+  const ft = up(String(f.term)).replace(/^T/, "");
+  if (!isAll(f.term) && bt !== ft) return false;
+
+  return true;
 }
 
-async function initCatalog() {
-  const listEl = $('#catalog-list');
-  if (!listEl) return;
-  const noteEl = $('#catalog-note');
-  noteEl.textContent = 'Loading…';
-  let data;
-  try { data = await fetchCatalog(); } catch (e) { noteEl.textContent = 'Could not load catalog. Please try again later.'; console.error(e); return; }
-  const bundles = data.bundles || [];
-  noteEl.textContent = `Loaded ${'${'}bundles.length} packs.`;
+function render(bundles) {
+  // Count line
+  noteEl.textContent = `Loaded ${bundles.length} pack${bundles.length === 1 ? "" : "s"}.`;
 
-  const gradeSel = $('select[data-filter="grade"]');
-  const subjSel  = $('select[data-filter="subject"]');
-  const yearSel  = $('select[data-filter="year"]');
-  const termSel  = $('select[data-filter="term"]');
-
-  const subjects = uniq(bundles.map(b => String(b.subject||'')));
-  const years = uniq(bundles.map(b => String(b.year||'')));
-
-  function fill(sel, values, current) {
-    if (!sel) return;
-    const keepFirst = sel.querySelector('option[value=""]');
-    sel.innerHTML = '';
-    if (keepFirst) sel.appendChild(keepFirst);
-    values.sort().forEach(v => { const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
-    if (current) sel.value = current;
+  // No results
+  if (!bundles.length) {
+    listEl.innerHTML = `<p>No results for the current filter.</p>`;
+    return;
   }
 
-  fill(subjSel, subjects, params.get('subject')||'');
-  fill(yearSel, years, params.get('year')||'');
-  if (gradeSel && params.get('grade')) gradeSel.value = params.get('grade');
-  if (termSel && params.get('term')) termSel.value = params.get('term');
+  // Cards
+  const cards = bundles.map(b => {
+    const items = (b.items || []).map(it => `
+      <li>
+        ${escapeHtml(it.paperName || "Paper")}
+        — ${escapeHtml(it.link)}Download</a>
+      </li>
+    `).join("");
 
-  const state = { grade: params.get('grade')||'', subject: params.get('subject')||'', year: params.get('year')||'', term: params.get('term')||'' };
-
-  $$('select[data-filter]').forEach(sel => {
-    const key = sel.getAttribute('data-filter');
-    sel.addEventListener('change', () => {
-      state[key] = sel.value;
-      render();
-      const p = new URLSearchParams(state);
-      for (const k of [...p.keys()]) if (!p.get(k)) p.delete(k);
-      history.replaceState({}, '', location.pathname + (p.toString() ? '?' + p.toString() : ''));
-    });
-  });
-
-  function matches(b) {
-    return (!state.grade || String(b.grade) === String(state.grade))
-      && (!state.subject || String(b.subject) === String(state.subject))
-      && (!state.year || String(b.year) === String(state.year))
-      && (!state.term || String(b.term) === String(state.term));
-  }
-
-  function cardHTML(b) {
-    const price = (typeof b.price === 'number') ? formatZAR(b.price) : 'R—';
-    const href = `product.html?sku=${'${'}encodeURIComponent(b.sku)}`;
-    const count = (b.items||[]).length;
     return `
-      <a class="card" href="${'${'}href}">
-        <strong>${'${'}b.title}</strong>
-        <div class="note">Grade ${'${'}b.grade} • ${'${'}b.subject} • ${'${'}b.year} • Term ${'${'}b.term} • ${'${'}count} files</div>
-        <div class="pill blue" style="margin-top:10px">${'${'}price}</div>
-      </a>
+      <article class="pack-card">
+        <h3>${escapeHtml(b.title || b.sku)}</h3>
+        <p><strong>SKU:</strong> ${escapeHtml(b.sku)}</p>
+        <ul>${items}</ul>
+        <div class="actions">
+          <!-- Hook this to your checkout when ready -->
+          #Buy</a>
+        </div>
+      </article>
     `;
-  }
+  }).join("");
 
-  function render() {
-    const filtered = bundles.filter(matches);
-    listEl.innerHTML = filtered.map(cardHTML).join('') || `<div class="note">No results for the current filter.</div>`;
-  }
-
-  render();
+  listEl.innerHTML = cards;
 }
 
-async function initProduct() {
-  const skuEl = $('#sku');
-  if (!skuEl) return;
-  const form = document.querySelector('form[action*="payfast"]');
-  if (!form) return;
-
-  form.setAttribute('action', payfastProcessUrl());
-  form.querySelector('input[name="merchant_id"]').value = CFG.payfast.merchant_id;
-  form.querySelector('input[name="merchant_key"]').value = CFG.payfast.merchant_key;
-  form.querySelector('input[name="return_url"]').value = CFG.payfast.return_url;
-  form.querySelector('input[name="cancel_url"]').value = CFG.payfast.cancel_url;
-  form.querySelector('input[name="notify_url"]').value = CFG.payfast.notify_url;
-
-  const sku = params.get('sku') || '';
-  skuEl.textContent = sku;
-  const mp = form.querySelector('input[name="m_payment_id"]');
-  if (mp) mp.value = sku;
-
-  let data;
-  try { data = await fetchCatalog(); } catch (e) { console.error(e); form.querySelector('button[type="submit"]').disabled = true; return; }
-
-  const bundle = (data.bundles||[]).find(b => b.sku === sku);
-  const itemName = form.querySelector('input[name="item_name"]');
-  const amount = form.querySelector('input[name="amount"]');
-
-  if (!bundle) { itemName.value='Unknown item'; amount.value='0.00'; form.querySelector('button[type="submit"]').disabled=true; return; }
-
-  itemName.value = bundle.title;
-  amount.value = (typeof bundle.price === 'number' ? bundle.price : 0).toFixed(2);
-
-  const fieldEmail = form.querySelector('input[name="email_address"]');
-  const fieldWhatsApp = form.querySelector('input[name="custom_str1"]');
-
-  form.addEventListener('submit', (e) => {
-    fieldWhatsApp.value = toE164(fieldWhatsApp.value);
-    if (!fieldEmail.value || !fieldWhatsApp.value) { e.preventDefault(); alert('Please enter a valid email and WhatsApp number.'); }
-  });
+function applyFilters() {
+  const f = currentFilters();
+  const filtered = ALL_BUNDLES.filter(b => passFilters(b, f));
+  render(filtered);
 }
 
-window.addEventListener('DOMContentLoaded', () => { initCatalog(); initProduct(); });
+// ====== INIT ======
+async function initCatalog() {
+  try {
+    noteEl.textContent = "Loading catalog…";
+    listEl.innerHTML = "";
+
+    const res = await fetch(CATALOG_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    ALL_BUNDLES = Array.isArray(data?.bundles) ? data.bundles : [];
+
+    // Populate dropdowns from data (subjects & years were empty in your HTML)
+    const grades   = uniqueSorted(ALL_BUNDLES.map(b => b.grade), { numeric:true });
+    const subjects = uniqueSorted(ALL_BUNDLES.map(b => b.subject));
+    const years    = uniqueSorted(ALL_BUNDLES.map(b => b.year), { numeric:true });
+    const terms    = uniqueSorted(ALL_BUNDLES.map(b => String(b.term).replace(/^T/, "")), { numeric:true });
+
+    // If you prefer to keep your prefilled Grades/Terms, comment these two lines
+    setOptions(selGrade,   grades,   "All grades");
