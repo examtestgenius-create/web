@@ -3,7 +3,7 @@
 const CATALOG_URL =
   "https://script.google.com/macros/s/AKfycbzwE4xmXVI4oIbo_hDU4CXT9ZS1skIuUhelCAmBhUP35Q5C51v0Emtk5KnAj0Pb3V6E/exec?mode=catalog";
 
-// HTML hooks (your existing markup)
+// Hooks to existing elements in catalog.html
 const selGrade   = document.querySelector('[data-filter="grade"]');
 const selSubject = document.querySelector('[data-filter="subject"]');
 const selYear    = document.querySelector('[data-filter="year"]');
@@ -11,7 +11,6 @@ const selTerm    = document.querySelector('[data-filter="term"]');
 const listEl     = document.getElementById("catalog-list");
 const noteEl     = document.getElementById("catalog-note");
 
-// in-memory cache of all bundles
 let ALL_BUNDLES = [];
 
 // ====== UTIL ======
@@ -21,8 +20,8 @@ const isAll = (v) => v === "" || up(v) === "ALL";
 
 function uniqueSorted(values, { numeric=false } = {}) {
   const arr = [...new Set(values.map(norm).filter(Boolean))];
-  if (numeric) return arr.sort((a,b) => Number(a) - Number(b));
-  return arr.sort((a,b) => a.localeCompare(b, undefined, { numeric:true }));
+  return numeric ? arr.sort((a,b)=>Number(a)-Number(b))
+                 : arr.sort((a,b)=>a.localeCompare(b, undefined, { numeric:true }));
 }
 
 function escapeHtml(s) {
@@ -31,23 +30,22 @@ function escapeHtml(s) {
     .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
-// Fill a <select> with options (preserving the first "All ..." option)
 function setOptions(select, values, allLabel) {
   if (!select) return;
-  const first = select.querySelector("option[value='']")?.outerHTML
-             || select.querySelector("option[value='ALL']")?.outerHTML
+  const first = select.querySelector('option[value=""]')?.outerHTML
+             || select.querySelector("option")?.outerHTML
              || `<option value="">${allLabel}</option>`;
   const html = values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
   select.innerHTML = first + html;
 }
 
-// ====== FILTERING & RENDER ======
+// ====== FILTER + RENDER ======
 function currentFilters() {
   return {
-    grade:   selGrade   ? selGrade.value   : "",
-    subject: selSubject ? selSubject.value : "",
-    year:    selYear    ? selYear.value    : "",
-    term:    selTerm    ? selTerm.value    : ""
+    grade:   selGrade?.value   || "",
+    subject: selSubject?.value || "",
+    year:    selYear?.value    || "",
+    term:    selTerm?.value    || ""
   };
 }
 
@@ -56,7 +54,7 @@ function passFilters(b, f) {
   if (!isAll(f.subject) && up(b.subject) !== up(f.subject)) return false;
   if (!isAll(f.year)    && up(b.year)    !== up(f.year))    return false;
 
-  // accept "1" and "T1" as the same
+  // Accept "1" and "T1" as equivalent
   const bt = up(String(b.term)).replace(/^T/, "");
   const ft = up(String(f.term)).replace(/^T/, "");
   if (!isAll(f.term) && bt !== ft) return false;
@@ -64,22 +62,19 @@ function passFilters(b, f) {
   return true;
 }
 
-function render(bundles) {
-  // Count line
-  noteEl.textContent = `Loaded ${bundles.length} pack${bundles.length === 1 ? "" : "s"}.`;
+function render(list) {
+  noteEl.textContent = `Loaded ${list.length} pack${list.length === 1 ? "" : "s"}.`;
 
-  // No results
-  if (!bundles.length) {
+  if (!list.length) {
     listEl.innerHTML = `<p>No results for the current filter.</p>`;
     return;
   }
 
-  // Cards
-  const cards = bundles.map(b => {
+  const html = list.map(b => {
     const items = (b.items || []).map(it => `
       <li>
-        ${escapeHtml(it.paperName || "Paper")}
-        — ${escapeHtml(it.link)}Download</a>
+        ${escapeHtml(it.paperName || "Paper")} —
+        ${escapeHtml(it.link)}Download</a>
       </li>
     `).join("");
 
@@ -89,20 +84,18 @@ function render(bundles) {
         <p><strong>SKU:</strong> ${escapeHtml(b.sku)}</p>
         <ul>${items}</ul>
         <div class="actions">
-          <!-- Hook this to your checkout when ready -->
+          <!-- Wire this to PayFast later -->
           #Buy</a>
         </div>
-      </article>
-    `;
+      </article>`;
   }).join("");
 
-  listEl.innerHTML = cards;
+  listEl.innerHTML = html;
 }
 
 function applyFilters() {
   const f = currentFilters();
-  const filtered = ALL_BUNDLES.filter(b => passFilters(b, f));
-  render(filtered);
+  render(ALL_BUNDLES.filter(b => passFilters(b, f)));
 }
 
 // ====== INIT ======
@@ -117,11 +110,29 @@ async function initCatalog() {
 
     ALL_BUNDLES = Array.isArray(data?.bundles) ? data.bundles : [];
 
-    // Populate dropdowns from data (subjects & years were empty in your HTML)
-    const grades   = uniqueSorted(ALL_BUNDLES.map(b => b.grade), { numeric:true });
+    // Build Subjects & Years from data (these were empty in your HTML)
     const subjects = uniqueSorted(ALL_BUNDLES.map(b => b.subject));
-    const years    = uniqueSorted(ALL_BUNDLES.map(b => b.year), { numeric:true });
-    const terms    = uniqueSorted(ALL_BUNDLES.map(b => String(b.term).replace(/^T/, "")), { numeric:true });
+    const years    = uniqueSorted(ALL_BUNDLES.map(b => b.year), { numeric: true });
 
-    // If you prefer to keep your prefilled Grades/Terms, comment these two lines
-    setOptions(selGrade,   grades,   "All grades");
+    setOptions(selSubject, subjects, "All subjects");
+    setOptions(selYear,    years,    "All years");
+
+    // Ensure first view shows everything (avoid filtering out your G12 test)
+    if (selGrade)   selGrade.value   = "";   // All grades
+    if (selTerm)    selTerm.value    = "";   // All terms
+    if (selSubject) selSubject.value = "";
+    if (selYear)    selYear.value    = "";
+
+    render(ALL_BUNDLES);
+
+    [selGrade, selSubject, selYear, selTerm].forEach(el => {
+      if (el) el.addEventListener("change", applyFilters);
+    });
+  } catch (err) {
+    console.error("Catalog load failed:", err);
+    noteEl.textContent = "Could not load catalog.";
+    listEl.innerHTML = `<p style="color:#f66">Error loading catalog. See console for details.</p>`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", initCatalog);
