@@ -45,7 +45,7 @@ function setOptions(select, values, allLabel) {
 // ====== PayFast Sandbox helper ======
 function payfastCheckout({ sku, title, amount = "10.00", email = "", whatsapp = "" }) {
   const form = document.createElement("form");
-  form.action = "https://sandbox.payfast.co.za/eng/process";   // Sandbox endpoint
+  form.action = "https://www.payfast.co.za/eng/process";
   form.method = "POST";
   form.style.display = "none";
 
