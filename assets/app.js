@@ -7,6 +7,38 @@ const cfg = {
   catalogEndpoint: 'https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec', // Optional: Apps Script Web App URL with ?action=catalog
 };
 
+function loadJsonp(url){
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('JSONP timeout'));
+    }, 15000);
+
+    function cleanup(){
+      clearTimeout(timer);
+      delete window[cb];
+      script.remove();
+    }
+
+    window[cb] = (data) => {
+      cleanup();
+      resolve(data);
+    };
+
+    const join = url.includes('?') ? '&' : '?';
+    script.src = `${url}${join}callback=${cb}`;
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('JSONP load error'));
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
 function formatZAR(cents){
   const r = (cents/100).toFixed(0);
   return `R${r}`;
