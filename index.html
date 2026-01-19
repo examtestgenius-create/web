@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StudyHub | Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body data-page="home">
+<header class="header">
+  <div class="container">
+    <div class="nav">
+      <a class="brand" href="index.html"><span class="brand-badge">SH</span> <span>StudyHub</span></a>
+      <nav class="links">
+        <a class="link" href="index.html">Home</a>
+        <a class="link" href="catalog.html">Browse Packs</a>
+        <a class="link" href="free.html">Free Resources</a>
+        <a class="link" href="contact.html">Contact</a>
+        <a class="btn btn-secondary" href="cart.html">Cart <span data-cart-badge style="display:none;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:800;margin-left:6px"></span></a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <h1>Ace Your Exams with Past Papers &amp; Solutions</h1>
+        <p>Grades 8–12 • CAPS aligned • Instant delivery after PayFast payment. Every pack includes memos so learners can study smarter.</p>
+        <div class="cta">
+          <a class="btn btn-outline" href="catalog.html">Browse Packs</a>
+          <a class="btn btn-success" href="cart.html">Go to Checkout</a>
+        </div>
+        <div style="margin-top:14px;opacity:.95;font-weight:700">Instant downloads • Secure payments • Email delivery</div>
+      </div>
+      <div class="hero-card">
+        <b style="font-size:16px">What you get</b>
+        <div class="kpi">
+          <div class="pill"><b>Papers + Memos</b><span style="opacity:.95">No incomplete packs</span></div>
+          <div class="pill"><b>Bundles</b><span style="opacity:.95">5, 10, 15 &amp; full-year</span></div>
+          <div class="pill"><b>PayFast</b><span style="opacity:.95">Hosted checkout</span></div>
+          <div class="pill"><b>Email Delivery</b><span style="opacity:.95">Drive download links</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>Popular Exam Packs</h2>
+    <div class="muted">Browse by grade and subject. Add to cart and checkout.</div>
+    <div class="grid cards" style="margin-top:14px" id="homePopular"></div>
+    <div style="margin-top:14px">
+      <a class="btn btn-primary" href="catalog.html">Browse All Packs</a>
+      <a class="btn btn-secondary" href="free.html">Free Resources</a>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Simple home render using local products.json
+  (async()=>{
+    const res = await fetch('./products.json');
+    const data = await res.json();
+    const grid = document.getElementById('homePopular');
+    const items = (data.products||[]).slice(0,4);
+    grid.innerHTML = items.map(p=>`
+      <div class="card">
+        <h3>${p.title}</h3>
+        <small>${p.grade} • ${p.subject} • Papers + Memos</small>
+        <div class="price">R${(p.price_cents/100).toFixed(0)}</div>
+        <div class="actions">
+          <a class="btn btn-primary" href="catalog.html">View</a>
+          <a class="btn btn-secondary" href="cart.html">Checkout</a>
+        </div>
+      </div>`).join('');
+  })();
+</script>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="legal">
+        <a href="legal/terms.html">Terms &amp; Conditions</a>
+        <a href="legal/privacy.html">Privacy Policy</a>
+        <a href="legal/refunds.html">Refund Policy</a>
+        <a href="legal/disclaimer.html">Copyright &amp; Disclaimer</a>
+      </div>
+      <div class="muted">© 2026 StudyHub • examtestpaper.co.za</div>
+    </div>
+  </div>
+</footer>
+<script src="./assets/app.js"></script>
+</body>
+</html>

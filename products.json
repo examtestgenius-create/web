@@ -1,0 +1,38 @@
+{
+  "version": "2.0",
+  "currency": "ZAR",
+  "products": [
+    {
+      "sku": "G12-MATH-BUNDLE-05",
+      "title": "Grade 12 Mathematics Bundle (5 Papers)",
+      "grade": "Grade 12",
+      "subject": "Mathematics",
+      "price_cents": 15000,
+      "hasMemo": true
+    },
+    {
+      "sku": "G11-PHYS-BUNDLE-03",
+      "title": "Grade 11 Physical Sciences (3 Papers)",
+      "grade": "Grade 11",
+      "subject": "Physical Sciences",
+      "price_cents": 12000,
+      "hasMemo": true
+    },
+    {
+      "sku": "G10-ENGHL-PACK-05",
+      "title": "Grade 10 English HL Pack (5 Papers)",
+      "grade": "Grade 10",
+      "subject": "English HL",
+      "price_cents": 9000,
+      "hasMemo": true
+    },
+    {
+      "sku": "G08-EMS-PACK-04",
+      "title": "Grade 8 EMS Pack (4 Papers)",
+      "grade": "Grade 8",
+      "subject": "EMS",
+      "price_cents": 8000,
+      "hasMemo": true
+    }
+  ]
+}

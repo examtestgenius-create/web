@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StudyHub | Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body data-page="cart">
+<header class="header">
+  <div class="container">
+    <div class="nav">
+      <a class="brand" href="index.html"><span class="brand-badge">SH</span> <span>StudyHub</span></a>
+      <nav class="links">
+        <a class="link" href="index.html">Home</a>
+        <a class="link" href="catalog.html">Browse Packs</a>
+        <a class="link" href="free.html">Free Resources</a>
+        <a class="link" href="contact.html">Contact</a>
+        <a class="btn btn-secondary" href="cart.html">Cart <span data-cart-badge style="display:none;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:800;margin-left:6px"></span></a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <h2>Checkout</h2>
+    <div class="muted">PayFast checkout integration is configured in the backend; WhatsApp checkout is available as a fallback.</div>
+
+    <div class="grid" style="grid-template-columns: 1.2fr .8fr;gap:14px">
+      <div>
+        <div id="cartList" class="grid"></div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Buyer Details</h3>
+          <label class="muted" for="buyerEmail">Email address</label>
+          <input id="buyerEmail" type="email" placeholder="you@example.com" style="width:100%;margin-top:6px" />
+
+          <div style="margin-top:12px">
+            <label style="display:flex;gap:10px;align-items:flex-start">
+              <input type="checkbox" id="agree" />
+              <span class="muted">I agree to the <a href="legal/terms.html" style="text-decoration:underline">Terms &amp; Conditions</a> and understand this is a digital product.</span>
+            </label>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
+            <div>
+              <div class="muted">Total</div>
+              <div class="price" id="cartTotal" style="margin:2px 0 0">R0</div>
+            </div>
+          </div>
+
+          <div class="actions" style="margin-top:10px">
+            <button class="btn btn-primary" id="payfastBtn">Pay with PayFast</button>
+            <button class="btn btn-success" id="whatsappCheckout">WhatsApp Checkout</button>
+          </div>
+
+          <div class="muted" style="margin-top:10px;font-size:13px">
+            PayFast button wiring is provided in the Apps Script and README. Once ITN is verified, downloads are emailed automatically.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const btn = document.getElementById('payfastBtn');
+    btn.addEventListener('click', ()=>{
+      const agree = document.getElementById('agree');
+      if(!agree.checked){ alert('Please accept the Terms & Conditions to continue.'); return; }
+      alert('PayFast checkout will be wired to your hosted checkout form. See README for setup.');
+    });
+  });
+</script>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="legal">
+        <a href="legal/terms.html">Terms &amp; Conditions</a>
+        <a href="legal/privacy.html">Privacy Policy</a>
+        <a href="legal/refunds.html">Refund Policy</a>
+        <a href="legal/disclaimer.html">Copyright &amp; Disclaimer</a>
+      </div>
+      <div class="muted">© 2026 StudyHub • examtestpaper.co.za</div>
+    </div>
+  </div>
+</footer>
+<script src="./assets/app.js"></script>
+</body>
+</html>
