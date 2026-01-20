@@ -229,3 +229,5 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(document.body.dataset.page==='catalog') initCatalogPage().catch(e=>console.error(e));
   if(document.body.dataset.page==='cart') initCartActions();
 });
+
+console.log("JSONP URL =>", script.src);
