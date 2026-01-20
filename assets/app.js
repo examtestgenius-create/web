@@ -45,17 +45,15 @@ function formatZAR(cents){
   return `R${r}`;
 }
 
+
 async function loadCatalog(){
-  // Priority: endpoint -> local JSON
   if(cfg.catalogEndpoint){
-    const url = cfg.catalogEndpoint + (cfg.catalogEndpoint.includes('?') ? '&' : '?') + 'action=catalog';
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('Catalog fetch failed');
-    return await res.json();
+    return await loadJsonp(cfg.catalogEndpoint);
   }
   const res = await fetch('./products.json');
   return await res.json();
 }
+
 
 function getCart(){
   try{return JSON.parse(localStorage.getItem('studyhub_cart')||'[]')}catch(e){return []}
