@@ -69,16 +69,61 @@
   </div>
 </section>
 
+
 <script>
-  document.addEventListener('DOMContentLoaded', ()=>{
+  document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('payfastBtn');
-    btn.addEventListener('click', ()=>{
+
+    btn.addEventListener('click', () => {
       const agree = document.getElementById('agree');
-      if(!agree.checked){ alert('Please accept the Terms & Conditions to continue.'); return; }
-      alert('PayFast checkout will be wired to your hosted checkout form. See README for setup.');
+      if (!agree.checked) {
+        alert('Please accept the Terms & Conditions to continue.');
+        return;
+      }
+
+      // Read cart
+      const cart = JSON.parse(localStorage.getItem('studyhub_cart') || '[]');
+
+      // IMPORTANT: keep PayFast as single-pack checkout for now
+      if (cart.length !== 1) {
+        alert('PayFast checkout supports one pack at a time. Please checkout packs separately or use WhatsApp checkout.');
+        return;
+      }
+
+      const item = cart[0];
+
+      // Buyer info
+      const email = (document.getElementById('buyerEmail')?.value || '').trim();
+      const name  = (document.getElementById('fullName')?.value || '').trim();      // optional
+      const phone = (document.getElementById('phoneNumber')?.value || '').trim();   // optional
+
+      // Apps Script Web App URL must be configured in assets/app.js
+      if (!window.cfg || !cfg.catalogEndpoint) {
+        alert('Missing cfg.catalogEndpoint. Set it in /assets/app.js to your Apps Script Web App URL.');
+        return;
+      }
+
+      // Return and cancel pages on your domain
+      const returnUrl = window.location.origin + '/success.html';
+      const cancelUrl = window.location.origin + '/cancel.html';
+
+      // Redirect to Apps Script "pay" action
+      const url =
+        cfg.catalogEndpoint +
+        (cfg.catalogEndpoint.includes('?') ? '&' : '?') +
+        'action=pay' +
+        '&sku=' + encodeURIComponent(item.sku) +
+        '&email=' + encodeURIComponent(email) +
+        '&name=' + encodeURIComponent(name) +
+        '&phone=' + encodeURIComponent(phone) +
+        '&return_url=' + encodeURIComponent(returnUrl) +
+        '&cancel_url=' + encodeURIComponent(cancelUrl);
+
+      window.location.href = url;
     });
   });
 </script>
+
 
 <footer class="footer">
   <div class="container">
