@@ -1,10 +1,11 @@
 
 // StudyHub minimal client
+
 const cfg = {
   brand: 'StudyHub',
   currency: 'ZAR',
-  whatsappNumber: '+27716816131', // e.g. '27711234567' (international format, no +)
-  catalogEndpoint: 'https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec', // Optional: Apps Script Web App URL with ?action=catalog
+  whatsappNumber: '',
+  catalogEndpoint: "https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec",
 };
 
 function loadJsonp(url){
