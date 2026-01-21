@@ -230,4 +230,4 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(document.body.dataset.page==='cart') initCartActions();
 });
 
-console.log("JSONP URL =>", script.src);
+console.log("JSONP URL =>", script.src);. DO NOT mention...
