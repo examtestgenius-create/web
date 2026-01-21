@@ -13,21 +13,15 @@
   <!-- Home-only polish (no need to touch style.css) -->
   <style>
     /* HERO IMAGE + OVERLAY */
-    
+  
 .hero.hero--photo{
-  position: relative;
-  overflow: hidden;
-  padding: 56px 0;
-
-  /* ALWAYS works everywhere (JPG fallback) */
   background:
     linear-gradient(90deg, rgba(10,22,45,.78) 0%, rgba(10,22,45,.62) 45%, rgba(10,22,45,.18) 100%),
     url("./assets/img/hero-study.jpg");
-
   background-size: cover;
   background-position: center;
-  color:#fff;
 }
+
 
 /* Optional upgrade: if browser supports image-set, it will prefer WebP/PNG */
 @supports (background-image: image-set(url("x.webp") type("image/webp"))) {
