@@ -294,3 +294,39 @@ document.addEventListener("DOMContentLoaded", () => {
   if (page === "catalog") initCatalogPage().catch((e) => console.error(e));
   if (page === "cart") initCartActions();
 });
+
+
+cfg.payfast = {
+  live: true, // set false to use sandbox
+  processUrlLive: "https://www.payfast.co.za/eng/process",
+  processUrlSandbox: "https://sandbox.payfast.co.za/eng/process",
+  // If you didn't set PF_* URLs in Script Properties, set them here:
+  return_url: window.location.origin + "/cart.html?status=success",
+  cancel_url: window.location.origin + "/cart.html?status=cancel",
+  notify_url: "YOUR_WEB_APP_EXEC_URL", // e.g. https://script.google.com/macros/s/....../exec
+  signEndpoint: "https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec?action=sign"
+};
+
+
+function postToPayfast_(params, signature){
+  const url = (cfg.payfast.live ? cfg.payfast.processUrlLive : cfg.payfast.processUrlSandbox);
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = url;
+
+  const all = { ...params, signature };
+  Object.keys(all).forEach(k=>{
+    const input = document.createElement('input');
+    input.type='hidden'; input.name=k; input.value=all[k];
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function roundToCents_(rands){
+  // Ensure "150.00" format for PayFast
+  return (Math.round((Number(rands)||0) * 100) / 100).toFixed(2);
+}
+
