@@ -1,16 +1,11 @@
 // StudyHub minimal client (fixed + hardened)
 
 const cfg = {
-  brand: "StudyHub",
-  currency: "ZAR",
-
-  // Put your WhatsApp number here in international format without +
-  // Example South Africa: 27716816131
-  whatsappNumber: "",
-
-  // Your Google Apps Script JSONP endpoint (must support ?callback=cb_xxx)
-  catalogEndpoint:
-    "https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec",
+  brand: 'StudyHub',
+  currency: 'ZAR',
+  whatsappNumber: '',
+-  catalogEndpoint: "https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec",
++  catalogEndpoint: "https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec?action=catalog",
 };
 
 // -----------------------------
