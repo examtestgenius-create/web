@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StudyHub • Home</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/style.css" />
+
+  <!-- Home-only polish (safe JPG hero: no webp/png references, so no 404) -->
+  <style>
+    .hero.hero--photo{
+      position:relative;
+      overflow:hidden;
+      padding:56px 0;
+      background:
+        linear-gradient(90deg, rgba(10,22,45,.78) 0%, rgba(10,22,45,.62) 45%, rgba(10,22,45,.18) 100%),
+        url("./assets/img/hero-study.jpg");
+      background-size:cover;
+      background-position:center;
+      color:#fff;
+    }
+    .hero--photo .hero-inner{ align-items:stretch; gap:18px; }
+
+    .caps-badge{
+      display:inline-flex; gap:10px; align-items:center;
+      padding:8px 12px; border-radius:999px;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(6px);
+      font-weight:800; letter-spacing:.2px;
+      margin-bottom:10px;
+    }
+
+    .chips{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+    .chip{
+      display:inline-flex; gap:10px; align-items:center;
+      padding:10px 12px; border-radius:999px;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.16);
+      font-weight:800; line-height:1;
+    }
+    .chip span{ font-weight:600; opacity:.95; }
+
+    .hero--photo .hero-card{
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.16);
+      box-shadow: 0 18px 50px rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+    }
+    .hero--photo .hero-card b,
+    .hero--photo .hero-card .pill b{ color:#fff; }
+    .hero--photo .hero-card .pill{
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+
+    .section-head{ display:flex; align-items:end; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+    .section-head h2{ margin:0; }
+    .section-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+    .badge-mini{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px;
+      font-size:12px; font-weight:900;
+      background: rgba(47,118,255,.12);
+      border: 1px solid rgba(47,118,255,.22);
+      color: #1c4fd6;
+      white-space:nowrap;
+    }
+    .card .title-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+
+    .step{ position:relative; padding-left:50px; }
+    .step .num{
+      position:absolute; left:14px; top:14px;
+      width:28px; height:28px;
+      display:grid; place-items:center;
+      border-radius:999px;
+      background: var(--brand, #2F76FF);
+      color:#fff; font-weight:900;
+    }
+
+    @media (max-width: 900px){
+      .hero.hero--photo{ padding:44px 0; }
+      .hero--photo .hero-inner{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+
+<body data-page="home">
+  <header class="header">
+    <div class="container">
+      <div class="nav">
+        <a class="brand" href="index.html"><span class="brand-badge">SH</span> <span>StudyHub</span></a>
+        <nav class="links">
+          <a class="link" href="index.html">Home</a>
+          <a class="link" href="catalog.html">Browse Packs</a>
+          <a class="link" href="free.html">Free Resources</a>
+          <a class="link" href="contact.html">Contact</a>
+          <a class="btn btn-secondary" href="cart.html">
+            Cart
+            <span data-cart-badge style="display:none;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:800;margin-left:6px"></span>
+          </a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero hero--photo">
+    <div class="container">
+      <div class="hero-inner">
+        <div>
+          <div class="caps-badge">
+            <span>CAPS aligned</span>
+            <span style="opacity:.92;font-weight:700">Grades 8–12</span>
+          </div>
+
+          <h1 style="max-width:20ch;margin-top:0">Ace Your Exams with Past Papers &amp; Memos</h1>
+          <p style="max-width:60ch;opacity:.96">
+            Instant access to exam-ready packs with memos included. Secure PayFast checkout and quick email delivery with download links.
+          </p>
+
+          <div class="cta">
+            <a class="btn btn-outline" href="catalog.html">Browse Packs</a>
+            <a class="btn btn-success" href="cart.html">Go to Checkout</a>
+          </div>
+
+          <div class="chips">
+            <div class="chip">⚡ <span>Instant access</span></div>
+            <div class="chip">🔒 <span>Secure payments</span></div>
+            <div class="chip">✉️ <span>Email delivery</span></div>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <b style="font-size:16px">What you get</b>
+          <div class="kpi">
+            <div class="pill"><b>Papers + Memos</b><span style="opacity:.95">Every pack</span></div>
+            <div class="pill"><b>Bundles</b><span style="opacity:.95">3, 5, 10+</span></div>
+            <div class="pill"><b>PayFast</b><span style="opacity:.95">Hosted checkout</span></div>
+            <div class="pill"><b>Drive links</b><span style="opacity:.95">Fast downloads</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POPULAR PACKS -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2>Popular Exam Packs</h2>
+          <div class="muted">Top picks by grade and subject — all include memos.</div>
+        </div>
+        <div class="section-actions">
+          <a class="btn btn-secondary" href="free.html">Free Resources</a>
+          <a class="btn btn-primary" href="catalog.html">Browse All Packs</a>
+        </div>
+      </div>
+
+      <div class="grid cards" style="margin-top:14px" id="homePopular"></div>
+
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn btn-primary" href="catalog.html">Browse Packs</a>
+        <a class="btn btn-success" href="cart.html">Checkout</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <h2>How it works</h2>
+      <div class="muted">Simple steps from choosing to receiving your links.</div>
+
+      <div class="grid cards" style="margin-top:14px">
+        <div class="card step">
+          <div class="num">1</div>
+          <h3>Choose packs</h3>
+          <small>Select grade &amp; subject and add packs to your cart.</small>
+        </div>
+        <div class="card step">
+          <div class="num">2</div>
+          <h3>Pay securely</h3>
+          <small>Checkout using PayFast for secure hosted payment.</small>
+        </div>
+        <div class="card step">
+          <div class="num">3</div>
+          <h3>Receive download links</h3>
+          <small>Get an email with download links after payment verification.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FREE RESOURCES TEASER -->
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+        <div>
+          <h3 style="margin:0">Free Resources</h3>
+          <div class="muted">Planners, formula sheets, revision guides and exam tips.</div>
+        </div>
+        <a class="btn btn-success" href="free.html">Open Free Downloads</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <h2>FAQ</h2>
+      <div class="grid cards" style="margin-top:14px">
+        <div class="card">
+          <h3>When do I receive my files?</h3>
+          <small>After payment verification, you’ll receive an email with download links.</small>
+        </div>
+        <div class="card">
+          <h3>Do packs include memos?</h3>
+          <small>Yes — packs are designed to include memos for proper studying.</small>
+        </div>
+        <div class="card">
+          <h3>Is WhatsApp checkout available?</h3>
+          <small>Yes — it can be used as a fallback option if enabled.</small>
+        </div>
+        <div class="card">
+          <h3>Where can I find policies?</h3>
+          <small>Terms, privacy, refunds, and disclaimer are linked in the footer.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="legal">
+          <a href="legal/terms.html">Terms &amp; Conditions</a>
+          <a href="legal/privacy.html">Privacy Policy</a>
+          <a href="legal/refunds.html">Refund Policy</a>
+          <a href="legal/disclaimer.html">Copyright &amp; Disclaimer</a>
+        </div>
+        <div class="muted">© 2026 StudyHub • examtestpaper.co.za</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Render popular packs (uses app.js addToCart + badge) -->
+  <script>
+    (async () => {
+      try {
+        const res = await fetch('./products.json');
+        const data = await res.json();
+        const products = (data.products || []).slice(0,4);
+        const grid = document.getElementById('homePopular');
+        if(!grid) return;
+
+        grid.innerHTML = products.map(p => `
+          <div class="card">
+            <div class="title-row">
+              <h3 style="margin:0">${p.title}</h3>
+              ${p.hasMemo ? `<span class="badge-mini">✓ Memo</span>` : ``}
+            </div>
+            <small>${p.grade} • ${p.subject} • Papers + Memos</small>
+            <div class="price">R${(p.price_cents/100).toFixed(0)}</div>
+            <div class="actions">
+              <a class="btn btn-secondary" href="catalog.html">View Pack</a>
+              <button class="btn btn-primary" type="button" data-add="${p.sku}">Add to Cart</button>
+            </div>
+          </div>
+        `).join('');
+
+        grid.querySelectorAll('[data-add]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const sku = btn.getAttribute('data-add');
+            const item = products.find(x => x.sku === sku);
+            if(!item) return;
+            // Prefer global addToCart from assets/app.js
+            if(typeof window.addToCart === 'function') {
+              window.addToCart({ sku: item.sku, title: item.title, price_cents: item.price_cents });
+            } else {
+              // fallback
+              const cart = JSON.parse(localStorage.getItem('studyhub_cart') || '[]');
+              const i = cart.findIndex(x => x.sku === item.sku);
+              if(i >= 0) cart[i].qty = (Number(cart[i].qty)||1) + 1;
+              else cart.push({ sku:item.sku, title:item.title, price_cents:item.price_cents, qty:1 });
+              localStorage.setItem('studyhub_cart', JSON.stringify(cart));
+            }
+            btn.textContent = 'Added ✓';
+            btn.disabled = true;
+            setTimeout(() => { btn.textContent = 'Add to Cart'; btn.disabled = false; }, 900);
+          });
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  </script>
+
+  <script src="./assets/app.js"></script>
+</body>
+</html>
