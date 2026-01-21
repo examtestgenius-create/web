@@ -303,7 +303,7 @@ cfg.payfast = {
   // If you didn't set PF_* URLs in Script Properties, set them here:
   return_url: window.location.origin + "/cart.html?status=success",
   cancel_url: window.location.origin + "/cart.html?status=cancel",
-  notify_url: "YOUR_WEB_APP_EXEC_URL", // e.g. https://script.google.com/macros/s/....../exec
+  notify_url: "https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec", // e.g. https://script.google.com/macros/s/....../exec
   signEndpoint: "https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec?action=sign"
 };
 
@@ -330,3 +330,55 @@ function roundToCents_(rands){
   return (Math.round((Number(rands)||0) * 100) / 100).toFixed(2);
 }
 
+
+const pfBtn = document.getElementById('payfastBtn');
+if (pfBtn){
+  pfBtn.addEventListener('click', async () => {
+    const email = (document.getElementById('buyerEmail') || {}).value || '';
+    const agree = document.getElementById('agree');
+    if (!agree || !agree.checked) { alert('Please accept the Terms & Conditions to continue.'); return; }
+
+    const cart = getCart();
+    if (!cart.length) { alert('Your cart is empty.'); return; }
+
+    // Build order summary
+    const totalCents = cart.reduce((a,b)=> a + Number(b.price_cents||0) * Number(b.qty||1), 0);
+    const amount = roundToCents_(totalCents/100);
+    const item_name = cart.length === 1 ? cart[0].title : `${cart.length} items`;
+    const m_payment_id = `SH-${Date.now()}`; // simple order id
+
+    // Ask backend to SIGN the payload (keeps passphrase off the client)
+    const q = new URLSearchParams({
+      callback: `cb_${Math.random().toString(36).slice(2)}`, // JSONP
+      amount,
+      item_name,
+      m_payment_id,
+      email_address: email,
+      name_first: 'Buyer',
+      name_last: 'StudyHub',
+      return_url: cfg.payfast.return_url,
+      cancel_url: cfg.payfast.cancel_url,
+      notify_url: cfg.payfast.notify_url
+    });
+
+    const url = `${cfg.payfast.signEndpoint}&${q.toString()}`;
+
+    await new Promise((resolve, reject) => {
+      const cbName = q.get('callback');
+      const s = document.createElement('script');
+      window[cbName] = (data) => {
+        try {
+          delete window[cbName];
+          s.remove();
+          if (!data || !data.ok) { reject(new Error('Sign failed')); return; }
+          postToPayfast_(data.params, data.signature);
+          resolve();
+        } catch(e){ reject(e); }
+      };
+      s.onerror = () => { delete window[cbName]; s.remove(); reject(new Error('JSONP error')); };
+      s.src = url;
+      document.body.appendChild(s);
+    });
+  });
+}
+``
