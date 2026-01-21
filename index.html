@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -6,24 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>StudyHub Home</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.comf="httpshref="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheetf="./assets/style.css need to touch style.css) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/style.css" />
+
+  <!-- Home-only polish (no need to touch style.css) -->
   <style>
     /* HERO IMAGE + OVERLAY */
     .hero.hero--photo {
       position: relative;
       overflow: hidden;
       padding: 56px 0;
+      /* Put your hero file here:
+         - Preferred: ./assets/img/hero-study.webp
+         - Also supported: ./assets/img/hero-study.png
+         - Fallback:  ./assets/img/hero-study.jpg
+      */
       background:
         linear-gradient(90deg, rgba(10,22,45,.92) 0%, rgba(10,22,45,.76) 45%, rgba(10,22,45,.25) 100%),
-        url("./assets/img/hero-study.webp"); /* <-- Update path if needed */
+        image-set(
+          url("./assets/img/hero-study.webp") type("image/webp"),
+          url("./assets/img/hero-study.png")  type("image/png"),
+          url("./assets/img/hero-study.jpg")  type("image/jpeg")
+        );
       background-size: cover;
       background-position: center;
       color: #fff;
     }
-    .hero--photo .hero-inner {
-      align-items: stretch;
-      gap: 18px;
-    }
+    .hero--photo .hero-inner { align-items: stretch; gap: 18px; }
 
     /* Badge / chips */
     .caps-badge {
@@ -39,12 +49,7 @@
       letter-spacing: .2px;
       margin-bottom: 10px;
     }
-    .chips {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
+    .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
     .chip {
       display: inline-flex;
       gap: 10px;
@@ -56,10 +61,7 @@
       font-weight: 800;
       line-height: 1;
     }
-    .chip span {
-      font-weight: 600;
-      opacity: .95;
-    }
+    .chip span { font-weight: 600; opacity: .95; }
 
     /* Right hero card: glassy */
     .hero--photo .hero-card {
@@ -81,11 +83,7 @@
       flex-wrap: wrap;
     }
     .section-head h2 { margin: 0; }
-    .section-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .section-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
     /* Product card highlights */
     .badge-mini {
@@ -108,10 +106,7 @@
     }
 
     /* “How it works” step cards */
-    .step {
-      position: relative;
-      padding-left: 50px;
-    }
+    .step { position: relative; padding-left: 50px; }
     .step .num {
       position: absolute;
       left: 14px;
@@ -138,13 +133,13 @@
   <header class="header">
     <div class="container">
       <div class="nav">
-        <a class="brand" href="brand-badge">SH</span> <span>StudyHub</span></a>
+        <a class="brand" href="index.html"><span class="brand-badge">SH</span> <span>StudyHub</span></a>
         <nav class="links">
-          <a classmlHome</a>
-          catalog.htmlBrowse Packs</a>
-          free.htmlFree Resources</a>
-          contact.htmlContact</a>
-          cart.html
+          <a class="link" href="index.html">Home</a>
+          <a class="link" href="catalog.html">Browse Packs</a>
+          <a class="link" href="free.html">Free Resources</a>
+          <a class="link" href="contact.html">Contact</a>
+          <a class="btn btn-secondary" href="cart.html">
             Cart
             <span data-cart-badge
               style="display:none;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:800;margin-left:6px">
@@ -165,17 +160,15 @@
             <span style="opacity:.92;font-weight:700">Grades 8–12</span>
           </div>
 
-          <h1 style="max-width: 20ch; margin-top: 0;">
-            Ace Your Exams with Past Papers & Memos
-          </h1>
+          <h1 style="max-width: 20ch; margin-top: 0;">Ace Your Exams with Past Papers &amp; Memos</h1>
 
           <p style="max-width: 60ch; opacity: .96;">
             Instant access to exam-ready packs with memos included. Secure PayFast checkout and quick email delivery with download links.
           </p>
 
           <div class="cta">
-            <atalog.htmlBrowse Packs</a>
-            cart.htmlGo to Checkout</a>
+            <a class="btn btn-outline" href="catalog.html">Browse Packs</a>
+            <a class="btn btn-success" href="cart.html">Go to Checkout</a>
           </div>
 
           <div class="chips">
@@ -208,14 +201,17 @@
           <div class="muted">Top picks by grade and subject — all include memos.</div>
         </div>
         <div class="section-actions">
-          <a class="btn btn-secondary" href="freeatalog.htmlBrowse All Packs</a>
+          <a class="btn btn-secondary" href="free.html">Free Resources</a>
+          <a class="btn btn-primary" href="catalog.html">Browse All Packs</a>
         </div>
       </div>
 
       <div class="grid cards" style="margin-top:14px" id="homePopular"></div>
 
       <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap">
-        <a class="btn btn-primary" href="catalog.html="btn btn-success" href=">
+        <a class="btn btn-primary" href="catalog.html">Browse Packs</a>
+        <a class="btn btn-success" href="cart.html">Checkout</a>
+      </div>
     </div>
   </section>
 
@@ -223,13 +219,13 @@
   <section class="section" style="padding-top:0">
     <div class="container">
       <h2>How it works</h2>
-      <div class="muted">Simple steps from choosing to downloading.</div>
+      <div class="muted">Simple steps from choosing to receiving your links.</div>
 
       <div class="grid cards" style="margin-top:14px">
         <div class="card step">
           <div class="num">1</div>
           <h3>Choose packs</h3>
-          <small>Select grade & subject and add packs to your cart.</small>
+          <small>Select grade &amp; subject and add packs to your cart.</small>
         </div>
         <div class="card step">
           <div class="num">2</div>
@@ -253,7 +249,7 @@
           <h3 style="margin:0">Free Resources</h3>
           <div class="muted">Planners, formula sheets, revision guides and exam tips.</div>
         </div>
-        free.htmlOpen Free Downloads</a>
+        <a class="btn btn-success" href="free.html">Open Free Downloads</a>
       </div>
     </div>
   </section>
@@ -300,7 +296,6 @@
       }
 
       function writeCart(key, items) {
-        // store as a simple array for compatibility
         localStorage.setItem(key, JSON.stringify(items));
       }
 
@@ -345,7 +340,7 @@
             <small>${p.grade} • ${p.subject} • Papers + Memos</small>
             <div class="price">R${(p.price_cents / 100).toFixed(0)}</div>
             <div class="actions">
-              catalog.htmlView Pack</a>
+              <a class="btn btn-secondary" href="catalog.html">View Pack</a>
               <button class="btn btn-primary" type="button" data-add="${p.sku}">Add to Cart</button>
             </div>
           </div>
@@ -374,16 +369,16 @@
     <div class="container">
       <div class="footer-inner">
         <div class="legal">
-          <a hreferms.htmlTerms & Conditions</a>
-          legal/privacy.htmlPrivacy Policy</a>
-          legal/refunds.htmlRefund Policy</a>
-          legal/disclaimer.htmlCopyright & Disclaimer</a>
+          <a href="legal/terms.html">Terms &amp; Conditions</a>
+          <a href="legal/privacy.html">Privacy Policy</a>
+          <a href="legal/refunds.html">Refund Policy</a>
+          <a href="legal/disclaimer.html">Copyright &amp; Disclaimer</a>
         </div>
         <div class="muted">© 2026 StudyHub • examtestpaper.co.za</div>
       </div>
     </div>
   </footer>
 
-  <scripts/app.js</script>
+  <script src="./assets/app.js"></script>
 </body>
 </html>
