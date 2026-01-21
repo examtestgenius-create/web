@@ -13,27 +13,34 @@
   <!-- Home-only polish (no need to touch style.css) -->
   <style>
     /* HERO IMAGE + OVERLAY */
-    .hero.hero--photo {
-      position: relative;
-      overflow: hidden;
-      padding: 56px 0;
-      /* Put your hero file here:
-         - Preferred: ./assets/img/hero-study.webp
-         - Also supported: ./assets/img/hero-study.png
-         - Fallback:  ./assets/img/hero-study.jpg
-      */
-      background:
-        linear-gradient(90deg, rgba(10,22,45,.92) 0%, rgba(10,22,45,.76) 45%, rgba(10,22,45,.25) 100%),
-        image-set(
-          url("./assets/img/hero-study.webp") type("image/webp"),
-          url("./assets/img/hero-study.png")  type("image/png"),
-          url("./assets/img/hero-study.jpg")  type("image/jpeg")
-        );
-      background-size: cover;
-      background-position: center;
-      color: #fff;
-    }
-    .hero--photo .hero-inner { align-items: stretch; gap: 18px; }
+    
+.hero.hero--photo{
+  position: relative;
+  overflow: hidden;
+  padding: 56px 0;
+
+  /* ALWAYS works everywhere (JPG fallback) */
+  background:
+    linear-gradient(90deg, rgba(10,22,45,.78) 0%, rgba(10,22,45,.62) 45%, rgba(10,22,45,.18) 100%),
+    url("./assets/img/hero-study.jpg");
+
+  background-size: cover;
+  background-position: center;
+  color:#fff;
+}
+
+/* Optional upgrade: if browser supports image-set, it will prefer WebP/PNG */
+@supports (background-image: image-set(url("x.webp") type("image/webp"))) {
+  .hero.hero--photo{
+    background:
+      linear-gradient(90deg, rgba(10,22,45,.78) 0%, rgba(10,22,45,.62) 45%, rgba(10,22,45,.18) 100%),
+      image-set(
+        url("./assets/img/hero-study.webp") type("image/webp"),
+        url("./assets/img/hero-study.png")  type("image/png"),
+        url("./assets/img/hero-study.jpg")  type("image/jpeg")
+      );
+  }
+}
 
     /* Badge / chips */
     .caps-badge {
