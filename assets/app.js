@@ -1,39 +1,40 @@
 
-// StudyHub client – full file (catalog + cart + PayFast secure sign)
+// StudyHub client – catalog + cart + PayFast secure sign (v2)
 
 /* ============================================================
-   CONFIG
+   CONFIG (edit me)
    ============================================================ */
 const cfg = {
   brand: 'StudyHub',
   currency: 'ZAR',
 
+  // LIVE or SANDBOX mode for PayFast
+  //   'live'    → https://www.payfast.co.za/eng/process
+  //   'sandbox' → https://sandbox.payfast.co.za/eng/process
+  mode: 'live',
+
   // Optional WhatsApp checkout (sheet-driven order handoff)
+  // e.g. '27716816131' (country code + number, no + or spaces)
   whatsappNumber: '',
 
-  // IMPORTANT: JSONP catalog endpoint (includes ?action=catalog)
-  catalogEndpoint:
-    'https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec?action=catalog',
+  // Your Apps Script Web App base (no trailing slash)
+  // Example: 'https://script.google.com/macros/s/AKfycbxYourDeployId/exec'
+  webAppBase: 'https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec',
 
-  // PayFast integration
-  payfast: {
-    live: true, // false = sandbox
-    processUrlLive: 'https://www.payfast.co.za/eng/process',
-    processUrlSandbox: 'https://sandbox.payfast.co.za/eng/process',
+  // Derived endpoints used by the cart/site
+  get catalogEndpoint() { return `${this.webAppBase}?action=catalog`; },
+  get signEndpoint()    { return `${this.webAppBase}?action=sign`; },
 
-    // If you didn't store these 3 URLs as Script Properties (PF_*),
-    // we set them here; server will include & sign them.
-    return_url: window.location.origin + '/cart.html?status=success',
-    cancel_url: window.location.origin + '/cart.html?status=cancel',
-
-    // ✅ YOUR Apps Script Web App URL (/exec) – for PayFast ITN notify:
-    notify_url:
-      'https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec',
-
-    // Server-side JSONP signer endpoint (same Apps Script, ?action=sign)
-    signEndpoint:
-      'https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec?action=sign'
-  }
+  // PayFast URLs (+ notify/return/cancel)
+  get payfastProcessUrl() {
+    return this.mode === 'sandbox'
+      ? 'https://sandbox.payfast.co.za/eng/process'
+      : 'https://www.payfast.co.za/eng/process';
+  },
+  // If PF_* are set as Script Properties, the server will override these.
+  get return_url() { return `${window.location.origin}/cart.html?status=success`; },
+  get cancel_url() { return `${window.location.origin}/cart.html?status=cancel`;  },
+  get notify_url() { return this.webAppBase; } // ITN → Apps Script doPost
 };
 
 /* ============================================================
@@ -141,7 +142,7 @@ async function initCatalogPage() {
   const products = data.products || [];
 
   // Populate filters
-  const grades = unique(products.map(p => p.grade)).sort();
+  const grades   = unique(products.map(p => p.grade)).sort();
   const subjects = unique(products.map(p => p.subject)).sort();
 
   const gradeSel = document.getElementById('gradeSel');
@@ -164,22 +165,22 @@ async function initCatalogPage() {
     const s = subjSel  ? subjSel.value  : '';
     const filtered = products.filter(p => matchFilters(p, g, s));
     grid.innerHTML = filtered.map(p => {
-      const memoLabel = p.hasMemo ? 'Papers + Memos' : 'Memo required';
-      const memoChip  = p.hasMemo
+      const memoChip = p.has_memo !== false
         ? '<span class="btn btn-secondary" style="padding:6px 10px;border-radius:999px;font-weight:700">Memo Included</span>'
         : '<span class="btn btn-secondary" style="padding:6px 10px;border-radius:999px;font-weight:700;color:#b91c1c;border-color:#fecaca;background:#fff5f5">Missing Memo</span>';
-      const disabled    = p.hasMemo ? '' : 'disabled';
-      const disableAttr = p.hasMemo ? '' : 'style="opacity:.55;cursor:not-allowed"';
+
+      const disabled    = p.has_memo === false ? 'disabled' : '';
+      const disableAttr = p.has_memo === false ? 'style="opacity:.55;cursor:not-allowed"' : '';
 
       return `
         <div class="card">
           <h3>${p.title}</h3>
-          <small>${p.grade} • ${p.subject} • ${memoLabel}</small>
+          <small>${p.grade} • ${p.subject}</small>
           <div class="price">${formatZAR(p.price_cents)}</div>
           <div class="actions">
             ${memoChip}
             <button class="btn btn-primary" ${disabled} ${disableAttr} data-add="${p.sku}">Add to Cart</button>
-            cart.htmlCheckout</a>
+            cart.htmlGo to Cart</a>
           </div>
         </div>`;
     }).join('');
@@ -188,7 +189,7 @@ async function initCatalogPage() {
       btn.addEventListener('click', () => {
         const sku = btn.getAttribute('data-add');
         const item = products.find(x => x.sku === sku);
-        if (!item || !item.hasMemo) return; // block missing memos
+        if (!item || item.has_memo === false) return; // block missing memos
         addToCart({ sku: item.sku, title: item.title, price_cents: item.price_cents });
         const old = btn.textContent;
         btn.textContent = 'Added ✓';
@@ -275,7 +276,7 @@ function renderCart() {
 }
 
 function postToPayfast_(params, signature) {
-  const url = (cfg.payfast.live ? cfg.payfast.processUrlLive : cfg.payfast.processUrlSandbox);
+  const url = cfg.payfastProcessUrl;
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = url;
@@ -291,26 +292,12 @@ function postToPayfast_(params, signature) {
   form.submit();
 }
 
-<script>
-  window.cfg = {
-    // Your Apps Script web app base (no trailing slash)
-    webAppBase: 'https://script.google.com/macros/s/AKfycbxYourDeployId/exec',
-
-    // Derived endpoints for the cart
-    get catalogEndpoint() { return this.webAppBase + '?action=catalog'; },
-    get signEndpoint()    { return this.webAppBase + '?action=sign'; },
-
-    // PayFast process URL: LIVE
-    payfastProcessUrl: 'https://www.payfast.co.za/eng/process'
-    // Sandbox: 'https://sandbox.payfast.co.za/eng/process'
-  };
-</script>
-
 function initCartActions() {
   renderCart();
 
-  // WhatsApp Checkout (optional)
   const emailEl = document.getElementById('buyerEmail');
+
+  // WhatsApp Checkout (optional)
   const waBtn = document.getElementById('whatsappCheckout');
   if (waBtn) {
     waBtn.addEventListener('click', () => {
@@ -331,13 +318,28 @@ function initCartActions() {
       const cart = getCart();
       if (!cart.length) { alert('Your cart is empty.'); return; }
 
-      const email = (emailEl && emailEl.value) ? emailEl.value : '';
-      const totalCents = cart.reduce((a, b) => a + Number(b.price_cents || 0) * Number(b.qty || 1), 0);
-      const amount = roundToCents_(totalCents / 100);
-      const item_name = cart.length === 1 ? cart[0].title : `${cart.length} items`;
-      const m_payment_id = `SH-${Date.now()}`; // simple order id
+      // IMPORTANT: backend fulfills ONE SKU per ITN.
+      if (cart.length !== 1) {
+        alert('Please checkout one item at a time.\nTip: Complete checkout for the first item, then return for the next.');
+        return;
+      }
 
-      // Ask backend to sign the payload (JSONP to avoid CORS)
+      const item = cart[0];
+      const qty = Number(item.qty || 1);
+      const email = (emailEl && emailEl.value) ? emailEl.value : '';
+
+      const totalCents = Number(item.price_cents || 0) * qty;
+      if (totalCents < 5000) { // R50 minimum order
+        alert('Minimum order is R50. Please add a larger pack.');
+        return;
+      }
+
+      const amount = roundToCents_(totalCents / 100);
+      // VERY IMPORTANT: use SKU for both m_payment_id and item_name
+      const m_payment_id = item.sku;
+      const item_name    = item.sku;
+
+      // Ask backend to sign (JSONP to avoid CORS)
       const q = new URLSearchParams({
         callback: `cb_${Math.random().toString(36).slice(2)}`,
         amount,
@@ -346,12 +348,12 @@ function initCartActions() {
         email_address: email,
         name_first: 'Buyer',
         name_last:  'StudyHub',
-        return_url: cfg.payfast.return_url,
-        cancel_url: cfg.payfast.cancel_url,
-        notify_url: cfg.payfast.notify_url
+        return_url: cfg.return_url,
+        cancel_url: cfg.cancel_url,
+        notify_url: cfg.notify_url
       });
 
-      const url = `${cfg.payfast.signEndpoint}&${q.toString()}`;
+      const url = `${cfg.signEndpoint}&${q.toString()}`;
 
       try {
         await new Promise((resolve, reject) => {
