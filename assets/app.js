@@ -291,6 +291,21 @@ function postToPayfast_(params, signature) {
   form.submit();
 }
 
+<script>
+  window.cfg = {
+    // Your Apps Script web app base (no trailing slash)
+    webAppBase: 'https://script.google.com/macros/s/AKfycbxYourDeployId/exec',
+
+    // Derived endpoints for the cart
+    get catalogEndpoint() { return this.webAppBase + '?action=catalog'; },
+    get signEndpoint()    { return this.webAppBase + '?action=sign'; },
+
+    // PayFast process URL: LIVE
+    payfastProcessUrl: 'https://www.payfast.co.za/eng/process'
+    // Sandbox: 'https://sandbox.payfast.co.za/eng/process'
+  };
+</script>
+
 function initCartActions() {
   renderCart();
 
