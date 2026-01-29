@@ -29,7 +29,7 @@ const cfg = {
 
   // PayFast process URL
   get payfastProcessUrl() {
-    return this.mode === 'sandbox'
+    return this.mode === 'live'
       ? 'https://sandbox.payfast.co.za/eng/process'
       : 'https://www.payfast.co.za/eng/process';
   }
