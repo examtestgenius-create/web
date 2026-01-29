@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StudyHub | Browse Packs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body data-page="catalog">
+<header class="header">
+  <div class="container">
+    <div class="nav">
+      <a class="brand" href="index.html"><span class="brand-badge">SH</span> <span>StudyHub</span></a>
+      <nav class="links">
+        <a class="link" href="index.html">Home</a>
+        <a class="link" href="catalog.html">Browse Packs</a>
+        <a class="link" href="free.html">Free Resources</a>
+        <a class="link" href="contact.html">Contact</a>
+        <a class="btn btn-secondary" href="cart.html">Cart <span data-cart-badge style="display:none;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:800;margin-left:6px"></span></a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <h2>Browse Packs</h2>
+    <div class="muted">Filter by grade and subject. Packs without memos are blocked.</div>
+
+    <div class="filters" style="margin-top:12px">
+      <div class="select">
+        <label class="muted" for="gradeSel">Grade</label>
+        <select id="gradeSel"></select>
+      </div>
+      <div class="select">
+        <label class="muted" for="subjectSel">Subject</label>
+        <select id="subjectSel"></select>
+      </div>
+      <div style="flex:1"></div>
+      <a class="btn btn-primary" href="cart.html">Checkout</a>
+    </div>
+
+    <div class="grid cards" style="margin-top:14px" id="productGrid"></div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="legal">
+        <a href="legal/terms.html">Terms &amp; Conditions</a>
+        <a href="legal/privacy.html">Privacy Policy</a>
+        <a href="legal/refunds.html">Refund Policy</a>
+        <a href="legal/disclaimer.html">Copyright &amp; Disclaimer</a>
+      </div>
+      <div class="muted">© 2026 StudyHub • examtestpaper.co.za</div>
+    </div>
+  </div>
+</footer>
+<script src="./assets/app.js"></script>
+</body>
+</html>
