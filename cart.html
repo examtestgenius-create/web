@@ -4,22 +4,39 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>StudyHub | Checkout</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/style.css" />
+
+  <!-- fonts + css -->
+  <link rel="pregoogleapis.com
+  <link rel="preconnect" href="https://f="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display= rel="stylesheet"<!-- 1) SAFETY FALLBACK: define cfg if /assets/app.js is missing/stale -->
+  <script>
+    (function () {
+      if (!window.cfg) {
+        var BASE = 'https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec';
+        window.cfg = {
+          catalogEndpoint: BASE + '?action=catalog',
+          signEndpoint:    BASE + '?action=sign',
+          notifyEndpoint:  BASE + '?action=itn',
+          currency:        'ZAR',
+          siteHost:        (typeof location !== 'undefined' ? location.hostname : 'examtestpaper.co.za')
+        };
+      }
+    })();
+  </script>
+
+  <!-- 2) MAIN CONFIG: make sure the exact file exists at /assets/app.js; use cache-buster -->
+  /assets/app.js?v=20260128</script>
 </head>
 <body data-page="cart">
 <header class="header">
   <div class="container">
     <div class="nav">
-      <a class="brand" href="index.html"><span class="brand-badge">SH</span> <span>StudyHub</span></a>
+      index.html<span class="brand-badge">SH</span> <span>StudyHub</span></a>
       <nav class="links">
-        <a class="link" href="index.html">Home</a>
-        <a class="link" href="catalog.html">Browse Packs</a>
-        <a class="link" href="free.html">Free Resources</a>
-        <a class="link" href="contact.html">Contact</a>
-        <a class="btn btn-secondary" href="cart.html">Cart <span data-cart-badge style="display:none;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:800;margin-left:6px"></span></a>
+        <a class="link" href="index.htmlog.htmlBrowse Packs</a>
+        <a class="link" href="free>
+        <a class="linkntact</a>
+        <a class="btn btn-secondary" href="cartt-badge style="display:none;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:800;margin-left:6px"></span>
+        </a>
       </nav>
     </div>
   </div>
@@ -37,13 +54,14 @@
       <div>
         <div class="card">
           <h3>Buyer Details</h3>
+
           <label class="muted" for="buyerEmail">Email address</label>
           <input id="buyerEmail" type="email" placeholder="you@example.com" style="width:100%;margin-top:6px" />
 
           <div style="margin-top:12px">
             <label style="display:flex;gap:10px;align-items:flex-start">
               <input type="checkbox" id="agree" />
-              <span class="muted">I agree to the <a href="legal/terms.html" style="text-decoration:underline">Terms &amp; Conditions</a> and understand this is a digital product.</span>
+              <span class="muted">I agree to the legal/terms.htmlTerms &amp; Conditions</a> and understand this is a digital product.</span>
             </label>
           </div>
 
@@ -69,7 +87,7 @@
   </div>
 </section>
 
-
+<!-- Page logic -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('payfastBtn');
@@ -84,7 +102,7 @@
       // Read cart
       const cart = JSON.parse(localStorage.getItem('studyhub_cart') || '[]');
 
-      // IMPORTANT: keep PayFast as single-pack checkout for now
+      // Single-pack checkout for PayFast for now
       if (cart.length !== 1) {
         alert('PayFast checkout supports one pack at a time. Please checkout packs separately or use WhatsApp checkout.');
         return;
@@ -97,7 +115,7 @@
       const name  = (document.getElementById('fullName')?.value || '').trim();      // optional
       const phone = (document.getElementById('phoneNumber')?.value || '').trim();   // optional
 
-      // Apps Script Web App URL must be configured in assets/app.js
+      // cfg must exist
       if (!window.cfg || !cfg.catalogEndpoint) {
         alert('Missing cfg.catalogEndpoint. Set it in /assets/app.js to your Apps Script Web App URL.');
         return;
@@ -107,10 +125,11 @@
       const returnUrl = window.location.origin + '/success.html';
       const cancelUrl = window.location.origin + '/cancel.html';
 
-      // Redirect to Apps Script "pay" action
+      // Redirect to Apps Script (using & not &amp;)
+      const base = cfg.catalogEndpoint;
+      const sep  = base.includes('?') ? '&' : '?';
       const url =
-        cfg.catalogEndpoint +
-        (cfg.catalogEndpoint.includes('?') ? '&' : '?') +
+        base + sep +
         'action=pay' +
         '&sku=' + encodeURIComponent(item.sku) +
         '&email=' + encodeURIComponent(email) +
@@ -124,20 +143,20 @@
   });
 </script>
 
-
 <footer class="footer">
   <div class="container">
     <div class="footer-inner">
       <div class="legal">
-        <a href="legal/terms.html">Terms &amp; Conditions</a>
-        <a href="legal/privacy.html">Privacy Policy</a>
-        <a href="legal/refunds.html">Refund Policy</a>
-        <a href="legal/disclaimer.html">Copyright &amp; Disclaimer</a>
+        <a href="legal/terms.htmlp; Conditions</a>
+        legal/privacy.htmlPrivacy Policy</a>
+        legal/refunds.htmlRefund Policy</a>
+        <a href="legal/disclaimerright &amp; Disclaimer</a>
       </div>
       <div class="muted">© 2026 StudyHub • examtestpaper.co.za</div>
     </div>
   </div>
 </footer>
-<script src="./assets/app.js"></script>
+
+<!-- (No need to load ./assets/app.js again at the bottom) -->
 </body>
 </html>
