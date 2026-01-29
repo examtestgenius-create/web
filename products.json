@@ -1,0 +1,9 @@
+
+{
+  "products": [
+    {"sku":"G12-MATH-FS-15","title":"Grade 12 Maths • Free State • Term Pack (15)","grade":"12","subject":"Mathematics","province":"Free State","hasMemo":true,"price_cents":6500},
+    {"sku":"G12-PSCI-WC-10","title":"Grade 12 Physical Sciences • Western Cape • Term Pack (10)","grade":"12","subject":"Physical Sciences","province":"Western Cape","hasMemo":true,"price_cents":5900},
+    {"sku":"G11-MATH-GP-5","title":"Grade 11 Maths • Gauteng • Mini Pack (5)","grade":"11","subject":"Mathematics","province":"Gauteng","hasMemo":true,"price_cents":3500},
+    {"sku":"G10-ENG-KZN-8","title":"Grade 10 English • KZN • Term Pack (8)","grade":"10","subject":"English","province":"KwaZulu-Natal","hasMemo":true,"price_cents":5200}
+  ]
+}
