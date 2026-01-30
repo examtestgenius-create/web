@@ -1,4 +1,3 @@
-
 // StudyHub client – minimal, with PayFast checkout (v2)
 
 // ============================================================
@@ -34,6 +33,9 @@ const cfg = {
       : 'https://www.payfast.co.za/eng/process';
   }
 };
+
+// Make cfg available to any legacy code
+window.cfg = cfg;
 
 // ============================================================
 // JSONP loader (for Apps Script)
@@ -155,8 +157,7 @@ async function initCatalogPage() {
           <div class="actions">
             ${memoChip}
             <button class="btn btn-primary" ${disabled} ${disableAttr} data-add="${p.sku}">Add to Cart</button>
-            cart.htmlGo to Cart</a>
-          </div>
+            <a class="btn btn-secondary" href="/div>
         </div>`;
     }).join('');
 
@@ -205,7 +206,7 @@ function renderCart() {
     list.innerHTML =
       '<div class="card"><b>Your cart is empty.</b>' +
       '<div class="muted" style="margin-top:6px">Browse packs to add items.</div>' +
-      '<div style="margin-top:12px">catalog.htmlBrowse Packs</a></div></div>';
+      '<div style="margin-top:12px"><a class="btnrowse Packs</a></div></div>';
     if (totalEl) totalEl.textContent = 'R0';
     renderCartBadge();
     return;
@@ -299,9 +300,9 @@ function initCartActions() {
         return;
       }
 
-      const item = cart[0];
-      const qty  = Number(item.qty || 1);
-      const email= (emailEl && emailEl.value) ? emailEl.value : '';
+      const item  = cart[0];
+      const qty   = Number(item.qty || 1);
+      const email = (emailEl && emailEl.value) ? emailEl.value : '';
 
       const totalCents = Number(item.price_cents || 0) * qty;
       if (totalCents < 5000) { // R50 minimum
