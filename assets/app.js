@@ -1,338 +1,330 @@
-// StudyHub client – minimal, with PayFast checkout (v2)
-// ============================================================
-// CONFIG – EDIT THESE
-// ============================================================
-const cfg = {
-  brand: 'StudyHub',
-  currency: 'ZAR',
-  // WhatsApp number in international format (no +, spaces, or dashes), e.g. '27716816131'
-  whatsappNumber: '27716816131', // set from project preferences
-  // LIVE or SANDBOX PayFast mode
-  mode: 'live', // 'live' | 'sandbox'
-  // Your Apps Script Web App base (no trailing slash). Example:
-  // 'https://script.google.com/macros/s/AKfycbw.../exec'
-  webAppBase: 'https://script.google.com/macros/s/AKfycbwLzazM5zV41rFJ4d5NzZubstnUB-AYdfriqd9IKjb3ZoS_MmwNrnnR8c93ci5-HkST/exec',
-  // Derived endpoints (do not change)
-  get catalogEndpoint() { return `${this.webAppBase}?action=catalog`; },
-  get signEndpoint() { return `${this.webAppBase}?action=sign`; },
-  get notify_url() { return this.webAppBase; },
-  // Return/Cancel URLs (client fallbacks; server may override via Script Properties)
-  get return_url() { return `${window.location.origin}/cart.html?status=success`; },
-  get cancel_url() { return `${window.location.origin}/cart.html?status=cancel`; },
-  // PayFast process URL
-  get payfastProcessUrl() {
-    return this.mode === 'sandbox'
-      ? 'https://sandbox.payfast.co.za/eng/process'
-      : 'https://www.payfast.co.za/eng/process';
-  }
-};
-// Make cfg available for any legacy code that still reads window.cfg
-window.cfg = cfg;  // <-- important
+/** StudyHub – Google Apps Script backend (PayFast + Catalog)
+ *  Endpoints:
+ *    GET  ?action=catalog&callback=cb        -> JSONP products
+ *    GET  ?action=sign&...&callback=cb       -> JSONP {ok, params, signature}
+ *    POST (ITN webhook from PayFast)         -> validates + fulfills
+ *
+ *  Configure secrets under: Project Settings -> Script Properties
+ *    MODE: 'live' | 'sandbox'
+ *    MERCHANT_ID, MERCHANT_KEY, PASSPHRASE
+ *    ADMIN_EMAIL
+ *    SHEET_ID, CATALOG_SHEET (e.g. 'Products')
+ */
 
-// ============================================================
-// JSONP loader (for Apps Script)
-// ============================================================
-function loadJsonp(url) {
-  return new Promise((resolve, reject) => {
-    const cb = 'cb_' + Math.random().toString(36).slice(2);
-    const s = document.createElement('script');
-    const timer = setTimeout(() => {
-      cleanup(); reject(new Error('JSONP timeout'));
-    }, 15000);
-    function cleanup() {
-      clearTimeout(timer);
-      try { delete window[cb]; } catch (_) {}
-      s.remove();
+const SP = PropertiesService.getScriptProperties();
+
+// ---------- Utilities ----------
+const PF_VALID_HOSTS = [
+  'www.payfast.co.za',
+  'sandbox.payfast.co.za',
+  'w1w.payfast.co.za',
+  'w2w.payfast.co.za',
+];
+
+// URL-encode like PHP's urlencode (spaces = '+', uppercase hex)
+function enc_(v) {
+  return encodeURIComponent(String(v)).replace(/%20/g, '+');
+}
+
+// hex string from byte[]
+function toHex_(bytes) {
+  return bytes.map(b => (b + 256).toString(16).slice(-2)).join('');
+}
+
+// MD5 helper
+function md5_(s) {
+  const raw = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, s, Utilities.Charset.UTF_8);
+  return toHex_(raw).toLowerCase();
+}
+
+// Assemble name=value pairs in required order (NOT alphabetical) per PayFast docs.
+// https://developers.payfast.co.za/docs  -> "Create security signature" (variable order)
+// We include keys that exist and are non-empty.
+function buildSigString_(data, order, passphrase) {
+  const pairs = [];
+  for (const k of order) {
+    if (data[k] !== undefined && data[k] !== null && data[k] !== '') {
+      pairs.push(`${k}=${enc_(String(data[k]).trim())}`);
     }
-    window[cb] = (data) => { cleanup(); resolve(data); };
-    const join = url.includes('?') ? '&' : '?';
-    s.src = `${url}${join}callback=${cb}`;
-    s.onerror = () => { cleanup(); reject(new Error('JSONP load error')); };
-    document.body.appendChild(s);
-  });
-}
-
-// ============================================================
-// Helpers
-// ============================================================
-function formatZAR(cents) {
-  const r = (Number(cents || 0) / 100).toFixed(0);
-  return `R${r}`;
-}
-async function loadCatalog() { return loadJsonp(cfg.catalogEndpoint); }
-function roundToCents_(rands) { return (Math.round((Number(rands) || 0) * 100) / 100).toFixed(2); }
-
-// ============================================================
-// Cart storage + badge
-// ============================================================
-function getCart() {
-  try { return JSON.parse(localStorage.getItem('studyhub_cart') || '[]'); }
-  catch (e) { return []; }
-}
-function setCart(items) {
-  localStorage.setItem('studyhub_cart', JSON.stringify(items));
-  renderCartBadge();
-}
-function addToCart(item) {
-  const cart = getCart();
-  const idx = cart.findIndex(x => x && x.sku === item.sku);
-  if (idx >= 0) cart[idx].qty = (Number(cart[idx].qty) || 1) + 1;
-  else cart.push({ ...item, qty: 1 });
-  setCart(cart);
-}
-function renderCartBadge() {
-  const el = document.querySelector('[data-cart-badge]');
-  if (!el) return;
-  const cart = getCart();
-  const n = cart.reduce((a, b) => a + (Number(b.qty) || 0), 0);
-  el.textContent = String(n);
-  el.style.display = n > 0 ? 'inline-grid' : 'none';
-}
-window.addToCart = addToCart; // used by catalog buttons
-
-// ============================================================
-// Catalog page
-// ============================================================
-function matchFilters(p, grade, subject) {
-  if (grade && p.grade !== grade) return false;
-  if (subject && p.subject !== subject) return false;
-  return true;
-}
-function unique(list) { return [...new Set(list)].filter(Boolean); }
-
-async function initCatalogPage() {
-  const data = await loadCatalog();
-  const products = (data && data.products) ? data.products : [];
-  const grades = unique(products.map(p => p.grade)).sort();
-  const subjects = unique(products.map(p => p.subject)).sort();
-  const gradeSel = document.getElementById('gradeSel');
-  const subjSel = document.getElementById('subjectSel');
-  const grid = document.getElementById('productGrid');
-  if (!grid) return;
-
-  if (gradeSel) {
-    gradeSel.innerHTML =
-      '<option value="">All Grades</option>' +
-      grades.map(g => `<option value="${g}">${g}</option>`).join('');
   }
-  if (subjSel) {
-    subjSel.innerHTML =
-      '<option value="">All Subjects</option>' +
-      subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+  let s = pairs.join('&');
+  if (passphrase) s += `&passphrase=${enc_(String(passphrase).trim())}`;
+  return s;
+}
+
+function getMode_() {
+  const m = (SP.getProperty('MODE') || 'sandbox').toLowerCase();
+  return (m === 'live') ? 'live' : 'sandbox';
+}
+
+function getPfHost_() {
+  return (getMode_() === 'live') ? 'www.payfast.co.za' : 'sandbox.payfast.co.za';
+}
+
+function jsonp_(cb, obj) {
+  const text = `${cb}(${JSON.stringify(obj)})`;
+  return ContentService.createTextOutput(text).setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+// ---------- Catalog (JSONP) ----------
+function getCatalog_() {
+  const SHEET_ID = SP.getProperty('SHEET_ID');
+  const TAB = SP.getProperty('CATALOG_SHEET') || 'Products';
+  if (!SHEET_ID) return { products: [] };
+
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sh = ss.getSheetByName(TAB);
+  if (!sh) return { products: [] };
+
+  // Expected header row: sku | title | grade | subject | price_cents | has_memo | popular
+  const values = sh.getDataRange().getValues();
+  const [hdr, ...rows] = values;
+  const idx = (name) => hdr.indexOf(name);
+
+  const out = rows
+    .filter(r => r && r.length)
+    .map(r => ({
+      sku: r[idx('sku')],
+      title: r[idx('title')],
+      grade: r[idx('grade')],
+      subject: r[idx('subject')],
+      price_cents: Number(r[idx('price_cents')] || 0),
+      has_memo: String(r[idx('has_memo')]).toLowerCase() !== 'false',
+      popular: String(r[idx('popular')]).toLowerCase() === 'true',
+    }))
+    .filter(p => p.sku);
+
+  return { products: out };
+}
+
+// ---------- SIGN (JSONP) ----------
+function signParams_(query) {
+  const merchant_id  = SP.getProperty('MERCHANT_ID');
+  const merchant_key = SP.getProperty('MERCHANT_KEY');
+  const passphrase   = SP.getProperty('PASSPHRASE');
+
+  if (!merchant_id || !merchant_key) {
+    return { ok: false, error: 'Missing merchant credentials (Script Properties).' };
   }
 
-  function render() {
-    const g = gradeSel ? gradeSel.value : '';
-    const s = subjSel ? subjSel.value : '';
-    const filtered = products.filter(p => matchFilters(p, g, s));
-    grid.innerHTML = filtered.map(p => {
-      const hasMemo = (p.has_memo !== false); // backend sends "has_memo"
-      const memoChip = hasMemo
-        ? '<span class="btn btn-secondary" style="padding:6px 10px;border-radius:999px;font-weight:700">Memo Included</span>'
-        : '<span class="btn btn-secondary" style="padding:6px 10px;border-radius:999px;font-weight:700;color:#b91c1c;border-color:#fecaca;background:#fff5f5">Missing Memo</span>';
-      const disabled = hasMemo ? '' : 'disabled';
-      const disableAttr = hasMemo ? '' : 'style="opacity:.55;cursor:not-allowed"';
-      return `
-        <div class="card">
-          <h3>${p.title}</h3>
-          <small>${p.grade} • ${p.subject}</small>
-          <div class="price">${formatZAR(p.price_cents)}</div>
-          <div class="actions">
-            ${memoChip}
-            <button class="btn btn-primary" ${disabled} ${disableAttr} data-add="${p.sku}">Add to Cart</button>
-            <a class="btn btn-secondary" href="cart>
-        </div>`;
-    }).join('');
-    grid.querySelectorAll('[data-add]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sku = btn.getAttribute('data-add');
-        const item = products.find(x => x.sku === sku);
-        if (!item || item.has_memo === false) return;
-        addToCart({ sku: item.sku, title: item.title, price_cents: item.price_cents });
-        renderCartBadge();
-      });
-    });
-  }
-  if (gradeSel) gradeSel.addEventListener('change', render);
-  if (subjSel) subjSel.addEventListener('change', render);
-  render();
-  renderCartBadge();
+  // Required from client
+  const amount        = query.amount;           // string with 2 decimals (client already formatted)
+  const item_name     = query.item_name;        // we use SKU here per client
+  const m_payment_id  = query.m_payment_id;     // SKU
+  const email_address = query.email_address || '';
+  const name_first    = query.name_first || '';
+  const name_last     = query.name_last || '';
+  const return_url    = query.return_url;
+  const cancel_url    = query.cancel_url;
+  const notify_url    = query.notify_url;
+
+  // Build PayFast param object (only those we send to PayFast form)
+  const params = {
+    // Merchant
+    merchant_id,
+    merchant_key,
+    return_url,
+    cancel_url,
+    notify_url,
+    // Buyer (optional)
+    name_first,
+    name_last,
+    email_address,
+    // Transaction
+    m_payment_id,
+    amount,
+    item_name,
+    // you can add: item_description, email_confirmation, confirmation_address, payment_method
+  };
+
+  // PayFast 'create signature' — param order matters (NOT alphabetical)
+  // https://developers.payfast.co.za/docs  (Create security signature)
+  const ORDER = [
+    // merchant
+    'merchant_id', 'merchant_key', 'return_url', 'cancel_url', 'notify_url',
+    // buyer
+    'name_first', 'name_last', 'email_address',
+    // transaction
+    'm_payment_id', 'amount', 'item_name', 'item_description',
+    // options:
+    'email_confirmation', 'confirmation_address', 'payment_method'
+  ];
+
+  const sigString = buildSigString_(params, ORDER, passphrase);
+  const signature = md5_(sigString);
+
+  return { ok: true, params, signature };
 }
 
-// ============================================================
-// Cart page
-// ============================================================
-function toWhatsAppMessage(cart, email) {
-  const lines = cart.map(i => `- ${i.title} x${i.qty} (${formatZAR(i.price_cents)})`);
-  const total = cart.reduce((a, b) => a + Number(b.price_cents || 0) * Number(b.qty || 1), 0);
-  return encodeURIComponent(
-    [
-      `${cfg.brand} Order Request`,
-      email ? `Email: ${email}` : '',
-      '',
-      ...lines,
-      '',
-      `Total: ${formatZAR(total)}`
-    ].filter(Boolean).join('\n')
-  );
-}
+// ---------- ITN (POST) ----------
+/**
+ * ITN verification:
+ * 1) 200 OK immediately (avoid retries)
+ * 2) Verify signature over ALL fields posted (including merchant_id etc.), +passphrase
+ * 3) Check valid host (optional but recommended)
+ * 4) Compare expected amount with amount_gross
+ * 5) Server validation: POST the param string to https://{host}/eng/query/validate and require 'VALID'
+ * Docs: https://developers.payfast.co.za/docs/itn-instant-transaction-notification/
+ */
+function doPost(e) {
+  try {
+    // (1) Immediately acknowledge
+    const out = ContentService.createTextOutput('OK');
+    out.setMimeType(ContentService.MimeType.TEXT);
+    // do not return yet; continue processing in same request
 
-function renderCart() {
-  const cart = getCart();
-  const list = document.getElementById('cartList');
-  const totalEl= document.getElementById('cartTotal');
-  if (!list) return;
+    const rawBody = e.postData && e.postData.contents ? String(e.postData.contents) : ''; // raw query string
+    const params  = e.parameter || {};
 
-  if (cart.length === 0) {
-    list.innerHTML =
-      '<div class="card"><b>Your cart is empty.</b>' +
-      '<div class="muted" style="margin-top:6px">Browse packs to add items.</div>' +
-      '<div style="margin-top:12px"><a class="btn btn-primary" hrefiv></div>';
-    if (totalEl) totalEl.textContent = 'R0';
-    renderCartBadge();
-    return;
-  }
+    // Keep a log line
+    console.log('ITN raw:', rawBody);
 
-  list.innerHTML = cart.map((i, idx) => `
-    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div>
-        <b>${i.title}</b>
-        <div class="muted" style="font-size:13px">${formatZAR(i.price_cents)} each</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <button class="btn btn-secondary" data-dec="${idx}">−</button>
-        <b>${i.qty}</b>
-        <button class="btn btn-secondary" data-inc="${idx}">+</button>
-        <button class="btn btn-secondary" data-del="${idx}">Remove</button>
-      </div>
-    </div>
-  `).join('');
+    // Rebuild param string EXCLUDING &signature=... using the raw ordering
+    // Safer than re-ordering keys
+    const paramString = rawBody.replace(/(&|^)signature=[^&]*/i, '').replace(/^&/, '');
 
-  const total = cart.reduce((a, b) => a + Number(b.price_cents || 0) * Number(b.qty || 1), 0);
-  if (totalEl) totalEl.textContent = formatZAR(total);
+    // (2) Verify signature with passphrase
+    const passphrase = SP.getProperty('PASSPHRASE') || '';
+    const sigCheckString = passphrase ? `${paramString}&passphrase=${enc_(passphrase)}` : paramString;
+    const sigComputed = md5_(sigCheckString);
+    const sigOk = (String(params.signature || '').toLowerCase() === sigComputed);
 
-  list.querySelectorAll('[data-inc]').forEach(b => b.addEventListener('click', () => {
-    const idx = +b.getAttribute('data-inc');
-    cart[idx].qty = (Number(cart[idx].qty) || 1) + 1;
-    setCart(cart); renderCart();
-  }));
-  list.querySelectorAll('[data-dec]').forEach(b => b.addEventListener('click', () => {
-    const idx = +b.getAttribute('data-dec');
-    cart[idx].qty = Math.max(1, (Number(cart[idx].qty) || 1) - 1);
-    setCart(cart); renderCart();
-  }));
-  list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
-    const idx = +b.getAttribute('data-del');
-    cart.splice(idx, 1); setCart(cart); renderCart();
-  }));
-  renderCartBadge();
-}
-
-// ---- PayFast form submit ----
-function postToPayfast_(params, signature) {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = cfg.payfastProcessUrl;
-  const all = { ...params, signature };
-  Object.keys(all).forEach(k => {
-    const input = document.createElement('input');
-    input.type = 'hidden'; input.name = k; input.value = all[k];
-    form.appendChild(input);
-  });
-  document.body.appendChild(form);
-  form.submit();
-}
-
-function initCartActions() {
-  renderCart();
-  const emailEl = document.getElementById('buyerEmail');
-
-  // WhatsApp checkout (optional)
-  const waBtn = document.getElementById('whatsappCheckout');
-  if (waBtn) {
-    waBtn.addEventListener('click', () => {
-      const cart = getCart();
-      if (!cfg.whatsappNumber) {
-        alert('WhatsApp number not configured yet. Set it in assets/app.js');
-        return;
-      }
-      const msg = toWhatsAppMessage(cart, emailEl ? emailEl.value : '');
-      window.open(`https://wa.me/${cfg.whatsappNumber}?text=${msg}`, '_blank');
-    });
-  }
-
-  // PayFast checkout (secure, server-signed)
-  const pfBtn = document.getElementById('payfastBtn');
-  if (pfBtn) {
-    pfBtn.addEventListener('click', async () => {
-      const agree = document.getElementById('agree');
-      if (!agree || !agree.checked) { alert('Please accept the Terms & Conditions to continue.'); return; }
-
-      const cart = getCart();
-      if (!cart.length) { alert('Your cart is empty.'); return; }
-      // Backend fulfills ONE SKU per ITN
-      if (cart.length !== 1) {
-        alert('Please checkout one item at a time.');
-        return;
-      }
-
-      const item = cart[0];
-      const qty = Number(item.qty || 1);
-      const email = (emailEl && emailEl.value) ? emailEl.value : '';
-      const totalCents = Number(item.price_cents || 0) * qty;
-      if (totalCents < 5000) { // R50 minimum
-        alert('Minimum order is R50. Please add a larger pack.');
-        return;
-      }
-
-      const amount = roundToCents_(totalCents / 100);
-      const m_payment_id = item.sku; // IMPORTANT: SKU here
-      const item_name = item.sku;    // and here (backend fallback extractor)
-
-      // Ask backend to sign (JSONP to avoid CORS)
-      const q = new URLSearchParams({
-        callback: `cb_${Math.random().toString(36).slice(2)}`,
-        amount,
-        item_name,
-        m_payment_id,
-        email_address: email,
-        name_first: 'Buyer',
-        name_last: 'StudyHub',
-        return_url: cfg.return_url,
-        cancel_url: cfg.cancel_url,
-        notify_url: cfg.notify_url
-      });
-      const url = `${cfg.signEndpoint}&${q.toString()}`;
-
+    // (3) Check valid domain IP (best-effort in Apps Script)
+    // Use 'Referer' header to resolve IP, fallback skip if header absent
+    const ref = (e && e.headers && (e.headers['Referer'] || e.headers['referer'])) || '';
+    let ipOk = true;
+    if (ref) {
       try {
-        await new Promise((resolve, reject) => {
-          const cbName = q.get('callback');
-          const s = document.createElement('script');
-          window[cbName] = (data) => {
-            try {
-              delete window[cbName]; s.remove();
-              if (!data || !data.ok) { reject(new Error('Sign failed')); return; }
-              postToPayfast_(data.params, data.signature);
-              resolve();
-            } catch (e) { reject(e); }
-          };
-          s.onerror = () => { delete window[cbName]; s.remove(); reject(new Error('JSONP error')); };
-          s.src = url;
-          document.body.appendChild(s);
+        const host = ref.replace(/^https?:\/\//i, '').split('/')[0];
+        const ips = [];
+        PF_VALID_HOSTS.forEach(h => {
+          const res = UrlFetchApp.fetch(`https://dns.google/resolve?name=${h}&type=A`, { muteHttpExceptions: true });
+          const json = JSON.parse(res.getContentText() || '{}');
+          (json.Answer || []).forEach(a => { if (a.data) ips.push(a.data); });
         });
+        const refIp = UrlFetchApp.fetch(`https://dns.google/resolve?name=${host}&type=A`, { muteHttpExceptions: true });
+        const refJson = JSON.parse(refIp.getContentText() || '{}');
+        const refHostIp = (refJson.Answer && refJson.Answer[0] && refJson.Answer[0].data) || '';
+        ipOk = !!ips.find(x => x === refHostIp);
       } catch (err) {
-        console.error(err);
-        alert('Could not start PayFast checkout. Please try again.');
+        ipOk = true; // don't fail hard on DNS problems within GAS
       }
+    }
+
+    // (4) Compare amounts (lookup expected cents from catalog)
+    const expectedCents = lookupPriceCents_(String(params.m_payment_id || '')); // uses Sheets
+    const gross = Number(params.amount_gross || 0); // rands
+    const amountOk = expectedCents > 0
+      ? Math.abs((expectedCents / 100) - gross) <= 0.01
+      : true; // if not found in catalog, do not fail—log for manual review
+
+    // (5) Server confirmation: post back to PayFast validate endpoint
+    const host = getPfHost_();
+    const validateUrl = `https://${host}/eng/query/validate`;
+    const res = UrlFetchApp.fetch(validateUrl, {
+      method: 'post',
+      contentType: 'application/x-www-form-urlencoded',
+      payload: paramString,
+      muteHttpExceptions: true,
+      validateHttpsCertificates: true,
     });
+    const serverOk = (String(res.getContentText()).trim() === 'VALID');
+
+    const allOk = sigOk && ipOk && amountOk && serverOk;
+
+    console.log(JSON.stringify({ sigOk, ipOk, amountOk, serverOk, pf_payment_id: params.pf_payment_id, m_payment_id: params.m_payment_id, payment_status: params.payment_status }));
+
+    if (allOk && String(params.payment_status).toUpperCase() === 'COMPLETE') {
+      // Fulfill: email download links
+      fulfillOrder_(params);
+    } else {
+      // Log for manual review
+      console.warn('ITN validation failed', { sigOk, ipOk, amountOk, serverOk, params });
+      notifyAdmin_('ITN validation failed', params);
+    }
+
+    return out;
+
+  } catch (err) {
+    console.error('ITN exception', err);
+    return ContentService.createTextOutput('ERR').setMimeType(ContentService.MimeType.TEXT);
   }
 }
 
-// ============================================================
-// Boot – auto-detect page (no need for data-page)
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-  renderCartBadge();
-  if (document.getElementById('productGrid')) initCatalogPage().catch(e => console.error(e));
-  if (document.getElementById('cartList')) initCartActions();
-});
+// ---------- Helpers: Catalog lookup & fulfillment ----------
+function lookupPriceCents_(sku) {
+  try {
+    const SHEET_ID = SP.getProperty('SHEET_ID');
+    const TAB = SP.getProperty('CATALOG_SHEET') || 'Products';
+    if (!SHEET_ID || !sku) return 0;
+    const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(TAB);
+    const values = sh.getDataRange().getValues(); // small sheet expected
+    const [hdr, ...rows] = values;
+    const idx = (name) => hdr.indexOf(name);
+    for (const r of rows) {
+      if (String(r[idx('sku')]) === sku) {
+        return Number(r[idx('price_cents')] || 0);
+      }
+    }
+  } catch (e) {
+    console.error('lookupPriceCents error', e);
+  }
+  return 0;
+}
+
+function productLinks_(sku) {
+  // OPTIONAL: map SKU -> Drive links via sheet columns (e.g., 'drive_links')
+  // For now, return placeholder; integrate your sheet column if available.
+  return [
+    'https://drive.google.com/your-pack-file-1',
+    'https://drive.google.com/your-pack-file-2',
+  ];
+}
+
+function notifyAdmin_(subject, params) {
+  const admin = SP.getProperty('ADMIN_EMAIL') || Session.getActiveUser().getEmail() || '';
+  if (!admin) return;
+  GmailApp.sendEmail(admin, `[StudyHub] ${subject}`, JSON.stringify(params, null, 2));
+}
+
+function fulfillOrder_(params) {
+  const admin = SP.getProperty('ADMIN_EMAIL') || '';
+  const email = params.email_address || admin || '';
+  const sku   = params.m_payment_id || params.item_name || 'Unknown SKU';
+  const links = productLinks_(sku);
+  const body =
+`Hi,
+
+Thank you for your purchase on StudyHub.
+
+Your download links for **${sku}**:
+${links.map(l => `• ${l}`).join('\n')}
+
+Order ref: ${params.pf_payment_id}
+Amount: R${params.amount_gross}
+
+If you have any issues, reply to this email.
+
+— StudyHub`;
+
+  if (email) GmailApp.sendEmail(email, `Your StudyHub download links — ${sku}`, body);
+  if (admin) GmailApp.sendEmail(admin, `[StudyHub] Fulfilled ${sku}`, `Buyer: ${email}\n\n${body}`);
+}
+
+// ---------- Router ----------
+function doGet(e) {
+  const a = (e.parameter.action || '').toLowerCase();
+  const cb = e.parameter.callback || e.parameter.cb || 'callback';
+
+  if (a === 'catalog') {
+    const data = getCatalog_();
+    return jsonp_(cb, data);
+  }
+  if (a === 'sign') {
+    const sig = signParams_(e.parameter);
+    return jsonp_(cb, sig);
+  }
+  // healthcheck / info
+  return ContentService.createTextOutput(JSON.stringify({ ok: true, mode: getMode_(), host: getPfHost_() }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
