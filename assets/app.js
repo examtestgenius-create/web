@@ -1,3 +1,4 @@
+
 // StudyHub client – minimal, with PayFast checkout (v2)
 
 // ============================================================
@@ -11,8 +12,7 @@ const cfg = {
   whatsappNumber: '',
 
   // LIVE or SANDBOX PayFast mode
-  // TIP: Use 'sandbox' until everything is green, then switch to 'live'
-  mode: 'sandbox', // 'live' | 'sandbox'
+  mode: 'live', // 'live' | 'sandbox'
 
   // Your Apps Script Web App base (no trailing slash). Example:
   // 'https://script.google.com/macros/s/AKfycbw.../exec'
@@ -34,9 +34,6 @@ const cfg = {
       : 'https://www.payfast.co.za/eng/process';
   }
 };
-
-// Make cfg available to any legacy code (defensive)
-window.cfg = cfg;
 
 // ============================================================
 // JSONP loader (for Apps Script)
@@ -101,10 +98,10 @@ function renderCartBadge() {
   el.textContent = String(n);
   el.style.display = n > 0 ? 'inline-grid' : 'none';
 }
-window.addToCart = addToCart; // used by buttons
+window.addToCart = addToCart; // used by catalog buttons
 
 // ============================================================
-// Catalog page (catalog.html)
+// Catalog page
 // ============================================================
 function matchFilters(p, grade, subject) {
   if (grade && p.grade !== grade) return false;
@@ -178,53 +175,6 @@ async function initCatalogPage() {
   if (subjSel)  subjSel.addEventListener('change', render);
   render();
   renderCartBadge();
-}
-
-// ============================================================
-// Home page (index.html) – render “Popular packs” from SAME catalog (no products.json)
-// ============================================================
-async function initHomePopular() {
-  const container = document.getElementById('homePopular');
-  if (!container) return;
-
-  try {
-    const data = await loadJsonp(cfg.catalogEndpoint);
-    const products = (data.products || []).filter(p => p.popular).slice(0, 4);
-
-    container.innerHTML = products.map(p => `
-      <div class="card">
-        <div class="title-row">
-          <h3 style="margin:0">${p.title}</h3>
-          ${p.has_memo !== false ? '<span class="badge-mini">✓ Memo</span>' : ''}
-        </div>
-        <small>${p.grade} • ${p.subject} • Papers + Memos</small>
-        <div class="price">R${(p.price_cents/100).toFixed(0)}</div>
-        <div class="actions">
-          <a class="btn btnPack</a>
-          <button class="btn btn-primary" type="button" data-add="${p.sku}">Add to Cart</button>
-        </div>
-      </div>
-    `).join('');
-
-    container.querySelectorAll('[data-add]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sku = btn.getAttribute('data-add');
-        const item = products.find(x => x.sku === sku);
-        if (!item) return;
-        if (typeof window.addToCart === 'function') {
-          window.addToCart({ sku: item.sku, title: item.title, price_cents: item.price_cents });
-        }
-        // Tiny UX touch
-        btn.textContent = 'Added ✓';
-        btn.disabled = true;
-        setTimeout(() => { btn.textContent = 'Add to Cart'; btn.disabled = false; }, 900);
-      });
-    });
-
-    renderCartBadge();
-  } catch (e) {
-    console.error('Home popular load failed', e);
-  }
 }
 
 // ============================================================
@@ -310,9 +260,6 @@ function postToPayfast_(params, signature) {
     form.appendChild(input);
   });
 
-  // Helpful trace in Console for live debugging
-  console.log('POSTING TO PAYFAST', { action: cfg.payfastProcessUrl, params: all });
-
   document.body.appendChild(form);
   form.submit();
 }
@@ -325,8 +272,7 @@ function initCartActions() {
   // WhatsApp checkout (optional)
   const waBtn = document.getElementById('whatsappCheckout');
   if (waBtn) {
-    waBtn.addEventListener('click', (e) => {
-      e.preventDefault(); e.stopPropagation();
+    waBtn.addEventListener('click', () => {
       const cart = getCart();
       if (!cfg.whatsappNumber) {
         alert('WhatsApp number not configured yet. Set it in assets/app.js');
@@ -340,11 +286,7 @@ function initCartActions() {
   // PayFast checkout (secure, server-signed)
   const pfBtn = document.getElementById('payfastBtn');
   if (pfBtn) {
-    pfBtn.addEventListener('click', async (e) => {
-      e.preventDefault();                 // hard stop any default navigation
-      e.stopPropagation();                // guard against parent anchors/forms
-      console.log('PayFast v2 handler');  // debug trace
-
+    pfBtn.addEventListener('click', async () => {
       const agree = document.getElementById('agree');
       if (!agree || !agree.checked) { alert('Please accept the Terms & Conditions to continue.'); return; }
 
@@ -357,9 +299,9 @@ function initCartActions() {
         return;
       }
 
-      const item  = cart[0];
-      const qty   = Number(item.qty || 1);
-      const email = (emailEl && emailEl.value) ? emailEl.value : '';
+      const item = cart[0];
+      const qty  = Number(item.qty || 1);
+      const email= (emailEl && emailEl.value) ? emailEl.value : '';
 
       const totalCents = Number(item.price_cents || 0) * qty;
       if (totalCents < 5000) { // R50 minimum
@@ -368,8 +310,8 @@ function initCartActions() {
       }
 
       const amount       = roundToCents_(totalCents / 100);
-      const m_payment_id = item.sku; // SKU
-      const item_name    = item.sku; // SKU
+      const m_payment_id = item.sku; // IMPORTANT: SKU here
+      const item_name    = item.sku; // and here (backend fallback extractor)
 
       // Ask backend to sign (JSONP to avoid CORS)
       const q = new URLSearchParams({
@@ -393,11 +335,7 @@ function initCartActions() {
           window[cbName] = (data) => {
             try {
               delete window[cbName]; s.remove();
-              if (!data || !data.ok) {
-                console.error('SIGN RESPONSE (server says):', data);
-                alert('Sign failed: ' + (data && data.error ? data.error : 'server error'));
-                reject(new Error('Sign failed')); return;
-              }
+              if (!data || !data.ok) { reject(new Error('Sign failed')); return; }
               postToPayfast_(data.params, data.signature);
               resolve();
             } catch (e) { reject(e); }
@@ -415,11 +353,10 @@ function initCartActions() {
 }
 
 // ============================================================
-// Boot – auto-detect page
+// Boot – auto-detect page (no need for data-page)
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
   renderCartBadge();
-  if (document.getElementById('homePopular'))  initHomePopular().catch(e => console.error(e));
-  if (document.getElementById('productGrid'))  initCatalogPage().catch(e => console.error(e));
-  if (document.getElementById('cartList'))     initCartActions();
+  if (document.getElementById('productGrid')) initCatalogPage().catch(e => console.error(e));
+  if (document.getElementById('cartList'))    initCartActions();
 });
