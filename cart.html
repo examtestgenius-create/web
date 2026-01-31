@@ -8,9 +8,9 @@
   <!-- Fonts -->
   https://fonts.googleapis.com
   https://fonts.gstatic.com
-  https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap
 
-  <!-- Your site CSS (absolute path) -->
+  <!-- CSS -->
   /assets/style.css
 </head>
 <body data-page="cart">
@@ -18,15 +18,19 @@
 <header class="header">
   <div class="container">
     <div class="nav">
-      /index.html<span class="brand-badge">SH</span> <span>StudyHub</span></a>
+      /index.html
+        <span class="brand-badge">SH</span> <span>StudyHub</span>
+      </a>
       <nav class="links">
-        /index.htmlHome</a>
-        /catalog.htmlBrowse Packs</a>
+        <a class="link" href        /catalog.htmlBrowse Packs</a>
         /free.htmlFree Resources</a>
         /contact.htmlContact</a>
         /cart.html
           Cart
-          <span data-cart-badge style="display:none;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:800;margin-left:6px"></span>
+          <span data-cart-badge
+            style="display:none;place-items:center;min-width:20px;height:20px;
+            padding:0 6px;border-radius:999px;background:var(--brand);
+            color:#fff;font-size:12px;font-weight:800;margin-left:6px"></span>
         </a>
       </nav>
     </div>
@@ -36,26 +40,28 @@
 <section class="section">
   <div class="container">
     <h2>Checkout</h2>
-    <div class="muted">PayFast checkout integration is configured in the backend; WhatsApp checkout is available as a fallback.</div>
+    <div class="muted">
+      PayFast checkout integration is configured in the backend; WhatsApp checkout is available as a fallback.
+    </div>
 
     <div class="grid" style="grid-template-columns: 1.2fr .8fr;gap:14px">
-      <!-- Cart items -->
       <div>
         <div id="cartList" class="grid"></div>
       </div>
 
-      <!-- Buyer + actions -->
       <div>
         <div class="card">
           <h3>Buyer Details</h3>
+
           <label class="muted" for="buyerEmail">Email address</label>
-          <input id="buyerEmail" type="email" placeholder="you@example.com" style="width:100%;margin-top:6px" />
+          <input id="buyerEmail" type="email" placeholder="you@example.com"
+                 style="width:100%;margin-top:6px" />
 
           <div style="margin-top:12px">
             <label style="display:flex;gap:10px;align-items:flex-start">
               <input type="checkbox" id="agree" />
               <span class="muted">
-                I agree to the <a href="/legal/terms.html" style="ions</a>
+                I agree to the <a hrefterms.htmlTerms & Conditions</a>
                 and understand this is a digital product.
               </span>
             </label>
@@ -74,31 +80,31 @@
           </div>
 
           <div class="muted" style="margin-top:10px;font-size:13px">
-            PayFast button wiring is provided in the Apps Script and README. Once ITN is verified, downloads are emailed automatically.
+            PayFast button wiring is provided in the Apps Script and README.
+            Once ITN is verified, downloads are emailed automatically.
           </div>
+
         </div>
       </div>
     </div>
   </div>
 </section>
 
-</section>
-
 <footer class="footer">
   <div class="container">
     <div class="footer-inner">
       <div class="legal">
-        /legal/terms.htmlTerms &amp; Conditions</a>
+        /legal/terms.htmlTerms & Conditions</a>
         /legal/privacy.htmlPrivacy Policy</a>
         /legal/refunds.htmlRefund Policy</a>
-        /legal/disclaimer.htmlCopyright &amp; Disclaimer</a>
+        /legal/disclaimer.htmlCopyright & Disclaimer</a>
       </div>
       <div class="muted">© 2026 StudyHub • examtestpaper.co.za</div>
     </div>
   </div>
 </footer>
 
-<!-- Load exactly ONE script at the end -->
+<!-- Load exactly ONE JS file -->
 /assets/app.js</script>
 </body>
 </html>
