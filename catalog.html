@@ -1,0 +1,59 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/style.css"/>
+<title>Browse Exam Packs • StudyHub</title>
+<meta name="description" content="Browse exam packs with memos included." />
+<link rel="canonical" href="https://examtestpaper.co.za/catalog.html" />
+<meta name="robots" content="index,follow" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="StudyHub" />
+<meta property="og:title" content="Browse Exam Packs • StudyHub" />
+<meta property="og:description" content="Browse exam packs with memos included." />
+<meta property="og:url" content="https://examtestpaper.co.za/catalog.html" />
+<meta property="og:image" content="https://examtestpaper.co.za/assets/img/studylogo.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Browse Exam Packs • StudyHub" />
+<meta name="twitter:description" content="Browse exam packs with memos included." />
+<meta name="twitter:image" content="https://examtestpaper.co.za/assets/img/studylogo.png" />
+</head><body>
+<header class="header"><div class="container"><div class="nav"><a class="brand" href="index.html"><img src="./assets/img/studylogo.png" alt="StudyHub" class="brand-logo" /><span>StudyHub</span></a><nav class="links"><a class="link" href="index.html">Home</a><a class="link" href="catalog.html">Browse Packs</a><a class="link" href="free.html">Free Resources</a><a class="link" href="contact.html">Contact</a><a class="btn btn-secondary" href="cart.html">Cart <span data-cart-badge style="display:none;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:900;margin-left:6px"></span></a></nav></div></div></header>
+<section class="section"><div class="container"><h2>Browse Packs</h2>
+<div class="muted">Click <b>Load Packs</b>. (Requires cfg.catalogEndpoint in assets/app.js.)</div>
+<div class="actions" style="margin-top:12px"><button class="btn btn-primary" id="load">Load Packs</button></div>
+<div class="grid cards" id="grid" style="margin-top:14px"></div>
+<div class="muted" id="hint" style="margin-top:10px"></div>
+</div></section>
+<footer class="footer"><div class="container"><div class="footer-inner"><div class="legal"><a href="legal/terms.html">Terms & Conditions</a><a href="legal/privacy.html">Privacy Policy</a><a href="legal/refunds.html">Refund Policy</a><a href="legal/disclaimer.html">Copyright & Disclaimer</a></div><div class="muted">© 2026 StudyHub • examtestpaper.co.za</div></div></div></footer>
+<script src="./assets/app.js"></script>
+<script>
+(function(){
+  const grid=document.getElementById('grid');
+  const hint=document.getElementById('hint');
+  function moneyCents(c){return 'R'+(Number(c||0)/100).toFixed(0)}
+  async function load(){
+    grid.innerHTML=''; hint.textContent='';
+    if(!window.cfg || !cfg.catalogEndpoint){hint.textContent='Missing backend endpoint. Set cfg.catalogEndpoint in assets/app.js.';return;}
+    const url = cfg.catalogEndpoint + (cfg.catalogEndpoint.indexOf('?')>=0?'&':'?') + 'action=products';
+    const res = await fetch(url);
+    const data = await res.json();
+    const products = (data.products||[]).filter(p=>p.hasMemo!==false);
+    if(!products.length){hint.textContent='No products returned. Check your Catalog sheet.';return;}
+    products.forEach(p=>{
+      const card=document.createElement('div'); card.className='card';
+      const h3=document.createElement('h3'); h3.style.margin='0'; h3.textContent=p.title;
+      const sm=document.createElement('small'); sm.textContent='Grade '+p.grade+' • '+p.subject+' • Memos included';
+      const pr=document.createElement('div'); pr.className='price'; pr.textContent=moneyCents(p.price_cents);
+      const actions=document.createElement('div'); actions.className='actions'; actions.style.marginTop='10px';
+      const btn=document.createElement('button'); btn.className='btn btn-primary'; btn.type='button'; btn.textContent='Add to Cart';
+      btn.addEventListener('click',()=>{ window.addToCart({sku:p.sku,title:p.title,price:(Number(p.price_cents||0)/100)}); btn.textContent='Added ✓'; setTimeout(()=>btn.textContent='Add to Cart',800); });
+      const go=document.createElement('a'); go.className='btn btn-secondary'; go.href='cart.html'; go.textContent='Checkout';
+      actions.appendChild(btn); actions.appendChild(go);
+      card.appendChild(h3); card.appendChild(sm); card.appendChild(pr); card.appendChild(actions);
+      grid.appendChild(card);
+    });
+  }
+  document.getElementById('load').addEventListener('click', load);
+})();
+</script>
+</body></html>

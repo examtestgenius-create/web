@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Disallow: /backend/
+
+Sitemap: https://examtestpaper.co.za/sitemap.xml

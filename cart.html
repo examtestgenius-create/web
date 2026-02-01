@@ -1,0 +1,96 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/style.css"/>
+<title>Checkout • StudyHub</title>
+<meta name="description" content="Secure checkout for StudyHub digital exam packs." />
+<link rel="canonical" href="https://examtestpaper.co.za/cart.html" />
+<meta name="robots" content="index,follow" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="StudyHub" />
+<meta property="og:title" content="Checkout • StudyHub" />
+<meta property="og:description" content="Secure checkout for StudyHub digital exam packs." />
+<meta property="og:url" content="https://examtestpaper.co.za/cart.html" />
+<meta property="og:image" content="https://examtestpaper.co.za/assets/img/studylogo.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Checkout • StudyHub" />
+<meta name="twitter:description" content="Secure checkout for StudyHub digital exam packs." />
+<meta name="twitter:image" content="https://examtestpaper.co.za/assets/img/studylogo.png" />
+</head><body>
+<header class="header"><div class="container"><div class="nav"><a class="brand" href="index.html"><img src="./assets/img/studylogo.png" alt="StudyHub" class="brand-logo" /><span>StudyHub</span></a><nav class="links"><a class="link" href="index.html">Home</a><a class="link" href="catalog.html">Browse Packs</a><a class="link" href="free.html">Free Resources</a><a class="link" href="contact.html">Contact</a><a class="btn btn-secondary" href="cart.html">Cart <span data-cart-badge style="display:none;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:900;margin-left:6px"></span></a></nav></div></div></header>
+<section class="section"><div class="container"><h2>Checkout</h2>
+<div class="muted">Checkout one pack at a time. PayFast hosted checkout.</div>
+<div class="grid" style="grid-template-columns:1.2fr .8fr;gap:14px;margin-top:14px">
+  <div id="items" class="grid"></div>
+  <div class="card"><h3 style="margin-top:0">Buyer Email</h3>
+    <input id="email" type="email" placeholder="you@example.com" required />
+    <label style="display:flex;gap:10px;align-items:flex-start;margin-top:12px"><input type="checkbox" id="agree"/> <span class="muted">I agree to the <a href="legal/terms.html" style="text-decoration:underline">Terms</a>.</span></label>
+    <div style="margin-top:12px"><div class="muted">Total</div><div class="price" id="total">R0</div></div>
+    <div class="actions" style="margin-top:12px"><button class="btn btn-primary" id="pay" disabled>Pay with PayFast</button><button class="btn btn-secondary" id="clear" type="button">Clear</button></div>
+    <div class="muted" id="err" style="margin-top:10px;color:#b91c1c;display:none"></div>
+  </div>
+</div>
+</div></section>
+<footer class="footer"><div class="container"><div class="footer-inner"><div class="legal"><a href="legal/terms.html">Terms & Conditions</a><a href="legal/privacy.html">Privacy Policy</a><a href="legal/refunds.html">Refund Policy</a><a href="legal/disclaimer.html">Copyright & Disclaimer</a></div><div class="muted">© 2026 StudyHub • examtestpaper.co.za</div></div></div></footer>
+<script src="./assets/app.js"></script>
+<script>
+(function(){
+  const key='studyhub_cart';
+  const itemsEl=document.getElementById('items');
+  const totalEl=document.getElementById('total');
+  const payBtn=document.getElementById('pay');
+  const err=document.getElementById('err');
+  function read(){ try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; } }
+  function write(v){ localStorage.setItem(key, JSON.stringify(v)); if(window.refreshBadge) window.refreshBadge(); }
+  function money(v){ return 'R'+Number(v||0).toFixed(2); }
+  function showErr(m){ err.style.display=m?'block':'none'; err.textContent=m||''; }
+  function render(){
+    const cart=read(); itemsEl.innerHTML='';
+    if(!cart.length){ itemsEl.innerHTML='<div class="card"><div class="muted">Cart is empty.</div></div>'; totalEl.textContent='R0'; return; }
+    let total=0;
+    cart.forEach((it,idx)=>{
+      const card=document.createElement('div'); card.className='card';
+      const row=document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.gap='10px';
+      const left=document.createElement('div');
+      const t=document.createElement('div'); t.style.fontWeight='800'; t.textContent=it.title||it.sku;
+      const s=document.createElement('div'); s.className='muted'; s.style.fontSize='13px'; s.textContent=it.sku||'';
+      left.appendChild(t); left.appendChild(s);
+      const right=document.createElement('div');
+      const p=document.createElement('div'); p.className='price'; p.style.fontSize='18px'; p.style.margin='0';
+      const qty=Number(it.qty||1);
+      const price=Number(it.price||0);
+      total += price*qty;
+      p.textContent=money(price*qty);
+      const rm=document.createElement('button'); rm.className='btn btn-secondary'; rm.type='button'; rm.textContent='Remove';
+      rm.addEventListener('click',()=>{ const c=read(); c.splice(idx,1); write(c); render(); update(); });
+      right.appendChild(p); right.appendChild(rm);
+      row.appendChild(left); row.appendChild(right);
+      card.appendChild(row);
+      itemsEl.appendChild(card);
+    });
+    totalEl.textContent=money(total);
+  }
+  function update(){
+    showErr('');
+    const email=document.getElementById('email');
+    const agree=document.getElementById('agree');
+    const ok = email.checkValidity() && email.value.trim().length>3 && agree.checked && read().length>0;
+    payBtn.disabled=!ok;
+  }
+  document.getElementById('email').addEventListener('input', update);
+  document.getElementById('agree').addEventListener('change', update);
+  document.getElementById('clear').addEventListener('click',()=>{ write([]); render(); update(); });
+  payBtn.addEventListener('click',()=>{
+    const cart=read();
+    if(!cfg.catalogEndpoint){ showErr('Backend endpoint not set. Edit assets/app.js and set cfg.catalogEndpoint to your /exec URL.'); return; }
+    if(cart.length!==1){ showErr('Please checkout one pack at a time (remove extra items).'); return; }
+    const sku=(cart[0].sku||'').trim();
+    const email=document.getElementById('email').value.trim();
+    if(!sku || !email){ showErr('Missing SKU or email.'); return; }
+    const url = cfg.catalogEndpoint + (cfg.catalogEndpoint.indexOf('?')>=0?'&':'?') + 'action=pay&sku=' + encodeURIComponent(sku) + '&email=' + encodeURIComponent(email);
+    window.location.href=url;
+  });
+  render(); update();
+})();
+</script>
+</body></html>
