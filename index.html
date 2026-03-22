@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>StudyHub — Go Live Candidate</title>
+  <meta name="description" content="StudyHub gives learners access to verified English and Afrikaans papers and memos from 2022 onward." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="index.html#top" aria-label="StudyHub home">
+        <img class="brand-logo" src="assets/img/studylogo.png" alt="StudyHub logo" />
+      </a>
+      <nav>
+        <a href="#featured">Featured</a>
+        <a href="#packages">Packages</a>
+        <a href="#filters">Search</a>
+        <a href="#how">How it works</a>
+        <a href="#contact" class="btn btn-sm btn-primary">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">StudyHub • live-ready candidate</div>
+          <h1>Browse, buy later, and deliver organized packages of papers and memos.</h1>
+          <p>
+            StudyHub is built around a structured Google Sheets + Google Drive backend with a storefront frontend.
+            This build includes package browsing, search, filters, sort, featured packages, detail pages, checkout scaffolding,
+            order capture, and admin rollout guidance.
+          </p>
+          <div class="hero-actions">
+            <a href="#featured" class="btn btn-primary">Explore Featured Packages</a>
+            <a href="#packages" class="btn btn-secondary">Open Package Catalog</a>
+          </div>
+          <ul class="hero-points">
+            <li>English + Afrikaans</li>
+            <li>Papers + memos</li>
+            <li>2022 onward</li>
+          </ul>
+        </div>
+        <div class="hero-media card-surface">
+          <img src="assets/img/hero-study.jpg" alt="Study desk with exam papers and memo" />
+          <div class="hero-media-overlay">
+            <span class="media-chip">Featured packs</span>
+            <span class="media-chip">Catalog filters</span>
+            <span class="media-chip">Checkout scaffold</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-bar">
+      <div class="container trust-items">
+        <span>Featured package rail</span>
+        <span>Search / filters / sort</span>
+        <span>Order capture scaffold</span>
+        <span>Live JSON or fallback sample data</span>
+      </div>
+    </section>
+
+    <section id="featured" class="section alt">
+      <div class="container">
+        <div class="section-head compact">
+          <span class="eyebrow">Featured</span>
+          <h2>Featured packages</h2>
+          <p>Top packages highlighted from the same live catalog feed.</p>
+        </div>
+        <div id="featuredCards" class="featured-grid"></div>
+      </div>
+    </section>
+
+    <section id="filters" class="section">
+      <div class="container">
+        <div class="section-head compact">
+          <span class="eyebrow">Catalog tools</span>
+          <h2>Search, filter and sort packages</h2>
+          <p>Search by SKU, subject or province, then refine by package type, province, subject and sort order.</p>
+        </div>
+        <div class="filter-bar card-surface">
+          <label class="search-wide">
+            Search catalog
+            <input id="searchInput" type="search" placeholder="Search by SKU, subject, province…" />
+          </label>
+          <label>
+            Package type
+            <select id="filterType"><option value="ALL">All types</option></select>
+          </label>
+          <label>
+            Province
+            <select id="filterProvince"><option value="ALL">All provinces</option></select>
+          </label>
+          <label>
+            Subject
+            <select id="filterSubject"><option value="ALL">All subjects</option></select>
+          </label>
+          <label>
+            Sort by
+            <select id="sortBy">
+              <option value="featured">Featured first</option>
+              <option value="priceAsc">Price: low to high</option>
+              <option value="priceDesc">Price: high to low</option>
+              <option value="filesDesc">Files: high to low</option>
+              <option value="nameAsc">Name: A to Z</option>
+            </select>
+          </label>
+          <button class="btn btn-secondary" id="clearFilters" type="button">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="packages" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Catalog</span>
+          <h2>Package catalog</h2>
+          <p id="catalogMeta">Loading package catalog…</p>
+        </div>
+        <div id="packageCards" class="cards three-up"></div>
+      </div>
+    </section>
+
+    <section id="how" class="section alt">
+      <div class="container">
+        <div class="section-head compact">
+          <span class="eyebrow">How it works</span>
+          <h2>From source link to package delivery</h2>
+        </div>
+        <div class="steps">
+          <article class="card-surface"><span>01</span><h3>Queue</h3><p>Direct PDF or ZIP links are added with grade, subject, province, year and document metadata.</p></article>
+          <article class="card-surface"><span>02</span><h3>Process</h3><p>The backend validates links, downloads files, hashes them and records them in the library.</p></article>
+          <article class="card-surface"><span>03</span><h3>Bundle</h3><p>Package rows are built from metadata and ZIP files can be generated for active packages.</p></article>
+          <article class="card-surface"><span>04</span><h3>Publish</h3><p>The frontend reads the exported live catalog feed and renders featured cards, search, filters and package pages.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="section contact-section">
+      <div class="container contact-grid">
+        <div>
+          <span class="eyebrow">Contact</span>
+          <h2>Ready to connect your final live settings</h2>
+          <p>This build is polished and deployment-focused. The last external values are your actual live Apps Script URL and any final payment provider details you choose to connect later.</p>
+        </div>
+        <form class="contact-card card-surface" id="contactForm">
+          <label>Name<input type="text" name="name" placeholder="Your name" required /></label>
+          <label>Email<input type="email" name="email" placeholder="Your email" required /></label>
+          <label>Message<textarea rows="4" name="message" placeholder="Tell us what package or rollout you need"></textarea></label>
+          <button class="btn btn-primary" type="submit">Send</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© StudyHub</span>
+      <span>Go-live candidate build</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
