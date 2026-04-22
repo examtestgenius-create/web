@@ -1,3 +1,6 @@
+// ------------------------------
+// StudyHub – Package Detail Page
+// ------------------------------
 
 window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || {
   liveCatalogUrl: '',
@@ -8,9 +11,13 @@ window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || {
 
 async function fetchStudyHubCatalog() {
   const tryUrls = [];
-  if (window.STUDYHUB_CONFIG.liveCatalogUrl) tryUrls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
+  if (window.STUDYHUB_CONFIG.liveCatalogUrl) {
+    tryUrls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
+  }
   tryUrls.push(window.STUDYHUB_CONFIG.fallbackCatalogUrl);
+
   const errors = [];
+
   for (const url of tryUrls) {
     try {
       const res = await fetch(url, { cache: 'no-store' });
@@ -21,27 +28,38 @@ async function fetchStudyHubCatalog() {
       errors.push(`${url}: ${err.message}`);
     }
   }
+
   throw new Error(errors.join('\n'));
 }
 
 function moneyZar(item) {
-  const cents = Number(item.Price_Cents || item.price_cents || 0);
+  const cents = Number(item.price_cents || 0);
   if (!cents) return 'Price not set';
-  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(cents / 100);
+  return new Intl.NumberFormat('en-ZA', {
+    style: 'currency',
+    currency: 'ZAR'
+  }).format(cents / 100);
 }
 
 function buyPlaceholder(sku) {
-  const target = `checkout.html?sku=${encodeURIComponent(sku)}`;
-  window.location.href = target;
+  window.location.href = `checkout.html?sku=${encodeURIComponent(sku)}`;
 }
 
-function downloadPlaceholder(sku) {
-  alert(`Download placeholder for ${sku}. Connect final delivery/download logic here later.`);
-}
+// ------------------------------
+// DOM Elements
+// ------------------------------
 
 const detailStatus = document.getElementById('detailStatus');
 const detailRoot = document.getElementById('packageDetailRoot');
-function getSkuFromUrl() { return new URL(window.location.href).searchParams.get('sku') || ''; }
+
+function getSkuFromUrl() {
+  return new URL(window.location.href).searchParams.get('sku') || '';
+}
+
+// ------------------------------
+// MARKUP (REAL HTML – NOT ESCAPED)
+// ------------------------------
+
 function detailMarkup(item) {
   const sku = item.sku;
   const title = item.title || sku;
@@ -67,11 +85,15 @@ function detailMarkup(item) {
     <div class="price-chip">${price}</div>
 
     <div class="detail-actions">
-      <a class="btn btn-primary" href="checkout.html?sku=${encodeURIComponent(sku)}">
+      <a class="btn btn-primary" href="checkout.html?sku=${encodeURIComponent(
+        sku
+      )}">
         Buy package
       </a>
 
-      <a class="btn btn-secondary" href="${item.deliveryUrl || item.driveUrl}" target="_blank">
+      <a class="btn btn-secondary" href="${
+        item.deliveryUrl || item.driveUrl || '#'
+      }" target="_blank">
         Download later
       </a>
 
@@ -81,20 +103,59 @@ function detailMarkup(item) {
     </div>
   `;
 }
+
+// ------------------------------
+// LOAD PACKAGE DETAIL
+// ------------------------------
+
 async function loadPackageDetail() {
   const sku = getSkuFromUrl();
-  if (!sku) { detailStatus.innerHTML = '<span class="eyebrow">Package detail</span><h2>Missing package SKU</h2><p>Add <code>?sku=YOUR_SKU</code> to the URL.</p>'; return; }
+
+  if (!sku) {
+    detailStatus.innerHTML = `
+      <span class="eyebrow">Package detail</span>
+      <h2>Missing package SKU</h2>
+      <p>Add <code>?sku=YOUR_SKU</code> to the URL.</p>
+    `;
+    return;
+  }
+
   try {
     const { payload, source } = await fetchStudyHubCatalog();
     const items = payload.items || payload.packages || [];
+    
+    // ✅ CORRECT SKU MATCH
     const item = items.find(v => String(v.sku) === sku);
-    if (!item) { detailStatus.innerHTML = `<span class="eyebrow">Package detail</span><h2>Package not found</h2><p>No package with SKU <code>${sku}</code> was found.</p>`; return; }
-    const sourceLabel = source === window.STUDYHUB_CONFIG.fallbackCatalogUrl ? 'fallback sample data' : 'live catalog';
-    detailStatus.innerHTML = `<span class="eyebrow">Package detail</span><h2>${sku}</h2><p>Loaded from ${sourceLabel}.</p>`;
+
+    if (!item) {
+      detailStatus.innerHTML = `
+        <span class="eyebrow">Package detail</span>
+        <h2>Package not found</h2>
+        <p>No package with SKU <code>${sku}</code> was found.</p>
+      `;
+      return;
+    }
+
+    const sourceLabel =
+      source === window.STUDYHUB_CONFIG.fallbackCatalogUrl
+        ? 'fallback sample data'
+        : 'live catalog';
+
+    detailStatus.innerHTML = `
+      <span class="eyebrow">Package detail</span>
+      <h2>${sku}</h2>
+      <p>Loaded from ${sourceLabel}.</p>
+    `;
+
     detailRoot.innerHTML = detailMarkup(item);
   } catch (err) {
-    detailStatus.innerHTML = '<span class="eyebrow">Package detail</span><h2>Catalog unavailable</h2><p>The package detail could not be loaded.</p>';
     console.error(err);
+    detailStatus.innerHTML = `
+      <span class="eyebrow">Package detail</span>
+      <h2>Catalog unavailable</h2>
+      <p>The package detail could not be loaded.</p>
+    `;
   }
 }
+
 loadPackageDetail();
