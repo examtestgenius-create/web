@@ -116,8 +116,33 @@ function sortItems(items) {
   return copy;
 }
 function renderFeatured(items) {
-  const featured = [...items].sort((a, b) => featuredScore(b) - featuredScore(a)).slice(0, 3);
-  featuredRoot.innerHTML = featured.map(item => formatCard(item, true)).join('');
+  // ✅ Only show higher‑level bundles
+  const allowedTypes = ['Ultimate Bundle', 'Master Bundle'];
+
+  const candidates = items.filter(item => {
+    const type = item.bundle_type || item.Bundle_Type || '';
+    return allowedTypes.includes(type);
+  });
+
+  // Prefer Ultimate > Master, then by Grade
+  candidates.sort((a, b) => {
+    const rank = t =>
+      t === 'Ultimate Bundle' ? 2 :
+      t === 'Master Bundle' ? 1 : 0;
+
+    const diff =
+      rank(b.bundle_type || b.Bundle_Type) -
+      rank(a.bundle_type || a.Bundle_Type);
+
+    if (diff !== 0) return diff;
+
+    return Number(a.grade || 0) - Number(b.grade || 0);
+  });
+
+  const featured = candidates.slice(0, 3);
+
+  featuredRoot.innerHTML =
+    featured.map(item => formatCard(item, true)).join('');
 }
 function applyFilters() {
   const type = filterType.value;
