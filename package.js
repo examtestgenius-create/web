@@ -89,7 +89,7 @@ async function loadPackageDetail() {
   try {
     const { payload, source } = await fetchStudyHubCatalog();
     const items = payload.items || payload.packages || [];
-    const item = items.find(v => String(v.SKU || v.sku || '') === sku);
+    const item = items.find(v => String(v.sku) === sku);
     if (!item) { detailStatus.innerHTML = `<span class="eyebrow">Package detail</span><h2>Package not found</h2><p>No package with SKU <code>${sku}</code> was found.</p>`; return; }
     const sourceLabel = source === window.STUDYHUB_CONFIG.fallbackCatalogUrl ? 'fallback sample data' : 'live catalog';
     detailStatus.innerHTML = `<span class="eyebrow">Package detail</span><h2>${sku}</h2><p>Loaded from ${sourceLabel}.</p>`;
