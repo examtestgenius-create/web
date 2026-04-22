@@ -43,15 +43,13 @@ const detailStatus = document.getElementById('detailStatus');
 const detailRoot = document.getElementById('packageDetailRoot');
 function getSkuFromUrl() { return new URL(window.location.href).searchParams.get('sku') || ''; }
 function detailMarkup(item) {
-  const sku = item.SKU || item.sku || '';
-  const type = item.Bundle_Type || item.bundle_type || 'Package';
-  const province = item.Province_Filter || item.province_filter || 'ALL';
-  const subject = item.Subject_Name || item.subject_name || 'ALL';
-  const notes = item.Notes || item.notes || 'No notes supplied.';
-  const fromYear = item.Coverage_From_Year || item.coverage_from_year || 2022;
-  const toYear = item.Coverage_To_Year || item.coverage_to_year || 'Onward';
-  const count = item.Included_File_Count || item.included_file_count || 0;
-  const zipPath = item.Drive_Zip_Path || item.drive_zip_path || 'Not built yet';
+  const sku = item.sku;
+  const title = item.title || sku;
+  const type = item.bundle_type;
+  const grade = item.grade;
+  const subject = item.subject_or_all;
+  const yearRange = item.year_or_range;
+  const files = item.file_count || 0;
   const price = moneyZar(item);
   return `
     <div class="detail-layout">
