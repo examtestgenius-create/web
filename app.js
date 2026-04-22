@@ -64,7 +64,7 @@ function featuredScore(item) {
 }
 
 function formatCard(item, featured=false) {
-  const count = item.Included_File_Count || item.included_file_count || 0;
+  const count = item.file_count || item.Included_File_Count || item.included_file_count || 0;
   const province = item.Province_Filter || item.province_filter || 'ALL';
   const subject = item.Subject_Name || item.subject_name || 'ALL';
   const type = item.Bundle_Type || item.bundle_type || item.type || 'Package';
