@@ -23,8 +23,13 @@ async function fetchStudyHubCatalog() {
   return res.json();
 }
 
-// ✅ Papers, not files
 function paperCount(item) {
+  // ✅ Single Subject bundles = price per paper
+  if (item.bundle_type === 'Single Subject') {
+    return 1;
+  }
+
+  // ✅ Other bundles (Master / Ultimate)
   const files = Number(item.file_count || 0);
   return Math.floor(files / 2);
 }
