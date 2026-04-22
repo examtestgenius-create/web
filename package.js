@@ -45,39 +45,39 @@ function getSkuFromUrl() { return new URL(window.location.href).searchParams.get
 function detailMarkup(item) {
   const sku = item.sku;
   const title = item.title || sku;
-  const type = item.bundle_type;
-  const grade = item.grade;
-  const subject = item.subject_or_all;
-  const yearRange = item.year_or_range;
+  const type = item.bundle_type || 'Bundle';
+  const grade = item.grade || '';
+  const subject = item.subject_or_all || '';
+  const yearRange = item.year_or_range || '';
   const files = item.file_count || 0;
   const price = moneyZar(item);
+
   return `
-    <div class="detail-layout">
-      <section class="detail-panel card-surface">
-        <span class="card-tag">${type}</span>
-        <h2>${sku}</h2>
-        <div class="badge-row"><span class="badge">${subject}</span><span class="badge">${province}</span><span class="badge">${price}</span></div>
-        <p>${notes}</p>
-        <div class="detail-meta-list">
-          <div class="detail-meta-item"><strong>Package type</strong><span>${type}</span></div>
-          <div class="detail-meta-item"><strong>Coverage from year</strong><span>${fromYear}</span></div>
-          <div class="detail-meta-item"><strong>Coverage to year</strong><span>${toYear}</span></div>
-          <div class="detail-meta-item"><strong>Province filter</strong><span>${province}</span></div>
-          <div class="detail-meta-item"><strong>Subject</strong><span>${subject}</span></div>
-          <div class="detail-meta-item"><strong>Included file count</strong><span>${count}</span></div>
-          <div class="detail-meta-item"><strong>ZIP path</strong><span>${zipPath}</span></div>
-        </div>
-      </section>
-      <aside class="detail-panel card-surface product-sidebar">
-        <h3>Get this package</h3>
-        <div class="product-price">${price}</div>
-        <p class="product-note">CTA placeholders are included here so the final payment and delivery flow can be connected later.</p>
-        <div class="detail-actions">
-          <a class="btn btn-primary" href="checkout.html?sku=${encodeURIComponent(sku)}">Buy package</a>
-          <button class="btn btn-ghost" type="button" onclick="downloadPlaceholder('${sku.replace(/'/g, "&#39;")}')">Download later</button>
-          <a class="btn btn-secondary" href="index.html#packages">Back to catalog</a>
-        </div>
-      </aside>
+    <h1>${title}</h1>
+
+    <div class="detail-grid">
+      <p><strong>SKU:</strong> ${sku}</p>
+      <p><strong>Bundle type:</strong> ${type}</p>
+      <p><strong>Grade:</strong> ${grade}</p>
+      <p><strong>Subject:</strong> ${subject}</p>
+      <p><strong>Coverage:</strong> ${yearRange}</p>
+      <p><strong>Included files:</strong> ${files}</p>
+    </div>
+
+    <div class="price-chip">${price}</div>
+
+    <div class="detail-actions">
+      <a class="btn btn-primary" href="checkout.html?sku=${encodeURIComponent(sku)}">
+        Buy package
+      </a>
+
+      <a class="btn btn-secondary" href="${item.deliveryUrl || item.driveUrl}" target="_blank">
+        Download later
+      </a>
+
+      <a class="btn btn-ghost" href="index.html#packages">
+        Back to catalog
+      </a>
     </div>
   `;
 }
