@@ -1,1 +1,41 @@
-{"generated_at":"2026-04-23T00:00:00Z","items":[]}
+{
+  "generated_at": "2026-04-23T00:00:00Z",
+  "items": [
+    {
+      "sku": "SH-G8-ENGLISH-2022-SS",
+      "title": "Grade 8 English \u2013 Single Subject",
+      "bundle_type": "Single Subject",
+      "subject_or_all": "English",
+      "province": "ALL",
+      "year_or_range": "2022",
+      "price_cents": 3900,
+      "file_count": 12,
+      "description": "Grade 8 English exam prep papers",
+      "published": true
+    },
+    {
+      "sku": "SH-G8-ALL-2022-2024-UB",
+      "title": "Grade 8 Ultimate Bundle",
+      "bundle_type": "Ultimate Bundle",
+      "subject_or_all": "ALL",
+      "province": "ALL",
+      "year_or_range": "2022-2024",
+      "price_cents": 19900,
+      "file_count": 128,
+      "description": "Complete Grade 8 exam prep bundle",
+      "published": true
+    },
+    {
+      "sku": "SH-G12-MATHEMATICS-2026-SS",
+      "title": "Grade 12 Mathematics \u2013 Single Subject",
+      "bundle_type": "Single Subject",
+      "subject_or_all": "Mathematics",
+      "province": "ALL",
+      "year_or_range": "2026",
+      "price_cents": 9900,
+      "file_count": 18,
+      "description": "Grade 12 Mathematics exam prep papers",
+      "published": true
+    }
+  ]
+}
