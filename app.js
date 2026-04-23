@@ -1,10 +1,8 @@
-
-window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || {
-  liveCatalogUrl: '',
-  fallbackCatalogUrl: 'data/catalog.sample.json',
-  apiBaseUrl: '',
-  contactMode: 'placeholder'
-};
+window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || {};
+window.STUDYHUB_CONFIG.fallbackCatalogUrl = window.STUDYHUB_CONFIG.fallbackCatalogUrl || 'data/catalog.sample.json';
+window.STUDYHUB_CONFIG.liveCatalogUrl = window.STUDYHUB_CONFIG.liveCatalogUrl || '';
+window.STUDYHUB_CONFIG.apiBaseUrl = window.STUDYHUB_CONFIG.apiBaseUrl || '';
+window.STUDYHUB_CONFIG.contactMode = window.STUDYHUB_CONFIG.contactMode || 'placeholder';
 
 async function fetchStudyHubCatalog() {
   const tryUrls = [];
@@ -21,11 +19,41 @@ async function fetchStudyHubCatalog() {
       errors.push(`${url}: ${err.message}`);
     }
   }
-  throw new Error(errors.join('\n'));
+  throw new Error(errors.join('
+'));
+}
+
+function inferGradeFromSku(sku) {
+  const m = String(sku || '').match(/SH-G(\d{1,2})-/i);
+  return m && m[1] ? m[1] : '';
+}
+
+function normalizeCatalogItem(item) {
+  const sku = item.SKU || item.sku || '';
+  const title = item.Title || item.title || sku || 'Package';
+  const type = item.Bundle_Type || item.bundle_type || item.type || 'Package';
+  const subject = item.Subject_Name || item.subject_name || item.subject_or_all || 'ALL';
+  const province = item.Province_Filter || item.province_filter || item.province || 'ALL';
+  const yearRange = item.year_or_range || item.Year_Range || '';
+  const fileCount = Number(item.Included_File_Count || item.included_file_count || item.file_count || 0);
+  const priceCents = Number(item.Price_Cents || item.price_cents || 0);
+  const notes = item.Notes || item.notes || item.description || '';
+  const driveUrl = item.Drive_Url || item.driveUrl || '';
+  const deliveryUrl = item.Delivery_Url || item.deliveryUrl || '';
+  let fromYear = item.Coverage_From_Year || item.coverage_from_year || '';
+  let toYear = item.Coverage_To_Year || item.coverage_to_year || '';
+  if ((!fromYear || !toYear) && /^\d{4}-\d{4}$/.test(String(yearRange))) {
+    const parts = String(yearRange).split('-');
+    fromYear = fromYear || parts[0];
+    toYear = toYear || parts[1];
+  }
+  if (!fromYear && /^\d{4}$/.test(String(yearRange))) fromYear = yearRange;
+  if (!toYear && /^\d{4}$/.test(String(yearRange))) toYear = yearRange;
+  return { raw: item, sku, title, type, subject, province, yearRange, fromYear: fromYear || '—', toYear: toYear || '—', fileCount, priceCents, notes, driveUrl, deliveryUrl, grade: inferGradeFromSku(sku) };
 }
 
 function moneyZar(item) {
-  const cents = Number(item.Price_Cents || item.price_cents || 0);
+  const cents = Number(item.priceCents || item.Price_Cents || item.price_cents || 0);
   if (!cents) return 'Price not set';
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(cents / 100);
 }
@@ -36,7 +64,7 @@ function buyPlaceholder(sku) {
 }
 
 function downloadPlaceholder(sku) {
-  alert(`Download placeholder for ${sku}. Connect final delivery/download logic here later.`);
+  alert(`Delivery is linked to a paid order. Open checkout for ${sku} to proceed.`);
 }
 
 const metaEl = document.getElementById('catalogMeta');
@@ -51,97 +79,98 @@ const searchInput = document.getElementById('searchInput');
 const contactForm = document.getElementById('contactForm');
 let catalogItems = [];
 
-function numericValue(v) { return Number(v || 0); }
 function featuredScore(item) {
-  const sku = String(item.SKU || item.sku || '');
-  const type = String(item.Bundle_Type || item.bundle_type || '');
-  const files = numericValue(item.Included_File_Count || item.included_file_count || 0);
-  let score = files;
-  if (type === 'Full Package') score += 1000;
-  if (type === 'Subject Package') score += 200;
-  if (sku.includes('WC') || sku.includes('ENG')) score += 50;
+  let score = item.fileCount || 0;
+  if (item.type === 'Ultimate Bundle') score += 1000;
+  if (item.type === 'Master Bundle') score += 300;
+  if ((item.subject || '').toUpperCase().includes('ENGLISH')) score += 50;
   return score;
 }
 
-function formatCard(item, featured=false) {
-  const count = item.Included_File_Count || item.included_file_count || 0;
-  const province = item.Province_Filter || item.province_filter || 'ALL';
-  const subject = item.Subject_Name || item.subject_name || 'ALL';
-  const type = item.Bundle_Type || item.bundle_type || item.type || 'Package';
-  const sku = item.SKU || item.sku || '';
-  const notes = item.Notes || item.notes || '';
-  const tag = featured ? 'Featured package' : type;
+function formatCard(item, featured = false) {
+  const tag = featured ? 'Featured package' : item.type;
   const wrapperClass = featured ? 'featured-card card-surface' : 'card-surface';
   return `
-    <article class="${wrapperClass}">
-      <span class="card-tag">${tag}</span>
-      <h3>${sku || type}</h3>
-      <div class="badge-row">
-        <span class="badge">${subject}</span>
-        <span class="badge">${province}</span>
-      </div>
-      <p>${notes || 'Metadata-driven package generated from the StudyHub library.'}</p>
-      <ul>
-        <li>From year: ${item.Coverage_From_Year || item.coverage_from_year || 2022}</li>
-        <li>To year: ${item.Coverage_To_Year || item.coverage_to_year || 'Onward'}</li>
-        <li>Files counted: ${count}</li>
-      </ul>
-      <div class="price-chip">${moneyZar(item)}</div>
-      <div class="card-actions">
-        <a class="btn btn-secondary" href="package.html?sku=${encodeURIComponent(sku)}">View details</a>
-        <button class="btn btn-primary" type="button" onclick="buyPlaceholder('${sku.replace(/'/g, "&#39;")}')">Buy package</button>
-        <button class="btn btn-ghost" type="button" onclick="downloadPlaceholder('${sku.replace(/'/g, "&#39;")}')">Download later</button>
-      </div>
-    </article>
-  `;
+  <article class="${wrapperClass}">
+    <span class="card-tag">${tag}</span>
+    <h3>${item.title}</h3>
+    <p class="product-note">${item.sku}</p>
+    <div class="badge-row">
+      <span class="badge">Grade ${item.grade || '—'}</span>
+      <span class="badge">${item.subject}</span>
+      <span class="badge">${item.province}</span>
+    </div>
+    <p>${item.notes || 'StudyHub bundle from the live catalog.'}</p>
+    <ul>
+      <li>From year: ${item.fromYear}</li>
+      <li>To year: ${item.toYear}</li>
+      <li>Files counted: ${item.fileCount}</li>
+    </ul>
+    <div class="price-chip">${moneyZar(item)}</div>
+    <div class="card-actions">
+      <a class="btn btn-secondary" href="package.html?sku=${encodeURIComponent(item.sku)}">View details</a>
+      <button class="btn btn-primary" type="button" onclick="buyPlaceholder('${item.sku.replace(/'/g, "\'")}')">Buy package</button>
+      <button class="btn btn-ghost" type="button" onclick="downloadPlaceholder('${item.sku.replace(/'/g, "\'")}')">Download later</button>
+    </div>
+  </article>`;
 }
 
-function uniqueSorted(list) { return [...new Set(list.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b))); }
-function populateFilters(items) {
-  const types = uniqueSorted(items.map(i => i.Bundle_Type || i.bundle_type || i.type));
-  const provinces = uniqueSorted(items.map(i => i.Province_Filter || i.province_filter || 'ALL'));
-  const subjects = uniqueSorted(items.map(i => i.Subject_Name || i.subject_name || 'ALL'));
-  filterType.innerHTML = '<option value="ALL">All types</option>' + types.map(v => `<option value="${v}">${v}</option>`).join('');
-  filterProvince.innerHTML = '<option value="ALL">All provinces</option>' + provinces.map(v => `<option value="${v}">${v}</option>`).join('');
-  filterSubject.innerHTML = '<option value="ALL">All subjects</option>' + subjects.map(v => `<option value="${v}">${v}</option>`).join('');
+function uniqueSorted(list) {
+  return [...new Set(list.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
 }
+
+function populateFilters(items) {
+  const types = uniqueSorted(items.map(i => i.type));
+  const provinces = uniqueSorted(items.map(i => i.province));
+  const subjects = uniqueSorted(items.map(i => i.subject));
+  if (filterType) filterType.innerHTML = '<option value="ALL">All types</option>' + types.map(v => `<option value="${v}">${v}</option>`).join('');
+  if (filterProvince) filterProvince.innerHTML = '<option value="ALL">All provinces</option>' + provinces.map(v => `<option value="${v}">${v}</option>`).join('');
+  if (filterSubject) filterSubject.innerHTML = '<option value="ALL">All subjects</option>' + subjects.map(v => `<option value="${v}">${v}</option>`).join('');
+}
+
 function sortItems(items) {
-  const mode = sortBy.value;
+  const mode = sortBy ? sortBy.value : 'featured';
   const copy = [...items];
-  if (mode === 'priceAsc') copy.sort((a, b) => numericValue(a.Price_Cents) - numericValue(b.Price_Cents));
-  else if (mode === 'priceDesc') copy.sort((a, b) => numericValue(b.Price_Cents) - numericValue(a.Price_Cents));
-  else if (mode === 'filesDesc') copy.sort((a, b) => numericValue(b.Included_File_Count) - numericValue(a.Included_File_Count));
-  else if (mode === 'nameAsc') copy.sort((a, b) => String(a.SKU || '').localeCompare(String(b.SKU || '')));
+  if (mode === 'priceAsc') copy.sort((a, b) => a.priceCents - b.priceCents);
+  else if (mode === 'priceDesc') copy.sort((a, b) => b.priceCents - a.priceCents);
+  else if (mode === 'filesDesc') copy.sort((a, b) => b.fileCount - a.fileCount);
+  else if (mode === 'nameAsc') copy.sort((a, b) => String(a.title).localeCompare(String(b.title)));
   else copy.sort((a, b) => featuredScore(b) - featuredScore(a));
   return copy;
 }
+
 function renderFeatured(items) {
+  if (!featuredRoot) return;
   const featured = [...items].sort((a, b) => featuredScore(b) - featuredScore(a)).slice(0, 3);
   featuredRoot.innerHTML = featured.map(item => formatCard(item, true)).join('');
 }
+
 function applyFilters() {
-  const type = filterType.value;
-  const province = filterProvince.value;
-  const subject = filterSubject.value;
-  const term = (searchInput.value || '').trim().toLowerCase();
+  const type = filterType ? filterType.value : 'ALL';
+  const province = filterProvince ? filterProvince.value : 'ALL';
+  const subject = filterSubject ? filterSubject.value : 'ALL';
+  const term = ((searchInput && searchInput.value) || '').trim().toLowerCase();
+
   let filtered = catalogItems.filter(item => {
-    const itemType = item.Bundle_Type || item.bundle_type || item.type || 'Package';
-    const itemProvince = item.Province_Filter || item.province_filter || 'ALL';
-    const itemSubject = item.Subject_Name || item.subject_name || 'ALL';
-    const textBlob = [item.SKU || item.sku || '', itemSubject, itemProvince, itemType, item.Notes || item.notes || ''].join(' ').toLowerCase();
-    if (type !== 'ALL' && itemType !== type) return false;
-    if (province !== 'ALL' && itemProvince !== province) return false;
-    if (subject !== 'ALL' && itemSubject !== subject) return false;
+    const textBlob = [item.sku, item.title, item.subject, item.province, item.type, item.notes, `Grade ${item.grade}`].join(' ').toLowerCase();
+    if (type !== 'ALL' && item.type !== type) return false;
+    if (province !== 'ALL' && item.province !== province) return false;
+    if (subject !== 'ALL' && item.subject !== subject) return false;
     if (term && !textBlob.includes(term)) return false;
     return true;
   });
+
   filtered = sortItems(filtered);
-  cardsRoot.innerHTML = filtered.length ? filtered.map(item => formatCard(item, false)).join('') : '<article class="card-surface"><h3>No matches</h3><p>Try a different search, sort, or filter combination.</p></article>';
+  cardsRoot.innerHTML = filtered.length
+    ? filtered.map(item => formatCard(item, false)).join('')
+    : '<article class="card-surface"><h3>No matches</h3><p>Try a different search, sort, or filter combination.</p></article>';
 }
+
 async function loadCatalog() {
   try {
     const { payload, source } = await fetchStudyHubCatalog();
-    catalogItems = payload.items || payload.packages || [];
+    const items = payload.items || payload.packages || [];
+    catalogItems = items.map(normalizeCatalogItem);
     const generated = payload.generatedAt || payload.generated_at || 'Unknown';
     const sourceLabel = source === window.STUDYHUB_CONFIG.fallbackCatalogUrl ? 'fallback sample data' : 'live catalog';
     metaEl.textContent = `Loaded ${catalogItems.length} package rows from ${sourceLabel}. Generated: ${generated}`;
@@ -153,15 +182,22 @@ async function loadCatalog() {
     metaEl.textContent = 'Catalog could not be loaded.';
     metaEl.classList.add('status-error');
     cardsRoot.innerHTML = '<article class="card-surface"><h3>Catalog unavailable</h3><p>Check the live URL or fallback JSON file.</p></article>';
-    featuredRoot.innerHTML = '';
+    if (featuredRoot) featuredRoot.innerHTML = '';
     console.error(err);
   }
 }
+
 [filterType, filterProvince, filterSubject, sortBy].forEach(el => el && el.addEventListener('change', applyFilters));
 if (searchInput) searchInput.addEventListener('input', applyFilters);
 if (clearFilters) clearFilters.addEventListener('click', () => {
-  filterType.value = 'ALL'; filterProvince.value = 'ALL'; filterSubject.value = 'ALL'; sortBy.value = 'featured'; searchInput.value = ''; applyFilters();
+  if (filterType) filterType.value = 'ALL';
+  if (filterProvince) filterProvince.value = 'ALL';
+  if (filterSubject) filterSubject.value = 'ALL';
+  if (sortBy) sortBy.value = 'featured';
+  if (searchInput) searchInput.value = '';
+  applyFilters();
 });
+
 if (contactForm) {
   contactForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -171,7 +207,11 @@ if (contactForm) {
       return;
     }
     try {
-      const res = await fetch(window.STUDYHUB_CONFIG.apiBaseUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'contact', ...data }) });
+      const res = await fetch(window.STUDYHUB_CONFIG.apiBaseUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'contact', ...data })
+      });
       if (!res.ok) throw new Error('Request failed');
       alert('Message sent.');
       contactForm.reset();
@@ -180,21 +220,19 @@ if (contactForm) {
     }
   });
 }
-loadCatalog();
 
-
-// Quick-pick buttons (grade + subject chips)
 try {
   document.querySelectorAll('[data-search]').forEach(btn => {
     btn.addEventListener('click', () => {
       const term = btn.getAttribute('data-search') || '';
-      const input = document.getElementById('searchInput');
-      if (input) {
-        input.value = term;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
+      if (searchInput) {
+        searchInput.value = term;
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
       const target = document.getElementById('packages');
       if (target) target.scrollIntoView({ behavior: 'smooth' });
     });
   });
-} catch(e) {}
+} catch (e) {}
+
+loadCatalog();
