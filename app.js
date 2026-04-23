@@ -3,40 +3,24 @@ window.STUDYHUB_CONFIG.fallbackCatalogUrl = window.STUDYHUB_CONFIG.fallbackCatal
 window.STUDYHUB_CONFIG.liveCatalogUrl = window.STUDYHUB_CONFIG.liveCatalogUrl || '';
 window.STUDYHUB_CONFIG.apiBaseUrl = window.STUDYHUB_CONFIG.apiBaseUrl || '';
 window.STUDYHUB_CONFIG.contactMode = window.STUDYHUB_CONFIG.contactMode || 'placeholder';
-window.STUDYHUB_CONFIG.catalogTimeoutMs = Number(window.STUDYHUB_CONFIG.catalogTimeoutMs || 8000);
-
-async function fetchJsonWithTimeout(url, timeoutMs) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 async function fetchStudyHubCatalog() {
   const tryUrls = [];
   if (window.STUDYHUB_CONFIG.liveCatalogUrl) tryUrls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
   tryUrls.push(window.STUDYHUB_CONFIG.fallbackCatalogUrl);
   const errors = [];
-
   for (const url of tryUrls) {
     try {
-      const payload = await fetchJsonWithTimeout(url, window.STUDYHUB_CONFIG.catalogTimeoutMs);
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const payload = await res.json();
       return { payload, source: url, errors };
     } catch (err) {
-      const msg = err && err.name === 'AbortError'
-        ? `Timed out after ${window.STUDYHUB_CONFIG.catalogTimeoutMs}ms`
-        : (err && err.message ? err.message : String(err));
-      errors.push(`${url}: ${msg}`);
-      console.warn('Catalog source failed:', url, msg);
+      errors.push(`${url}: ${err.message}`);
     }
   }
-
-  throw new Error(errors.join('\n'));
+  throw new Error(errors.join('
+'));
 }
 
 function inferGradeFromSku(sku) {
@@ -54,9 +38,10 @@ function normalizeCatalogItem(item) {
   const fileCount = Number(item.Included_File_Count || item.included_file_count || item.file_count || 0);
   const priceCents = Number(item.Price_Cents || item.price_cents || 0);
   const notes = item.Notes || item.notes || item.description || '';
+  const driveUrl = item.Drive_Url || item.driveUrl || '';
+  const deliveryUrl = item.Delivery_Url || item.deliveryUrl || '';
   let fromYear = item.Coverage_From_Year || item.coverage_from_year || '';
   let toYear = item.Coverage_To_Year || item.coverage_to_year || '';
-
   if ((!fromYear || !toYear) && /^\d{4}-\d{4}$/.test(String(yearRange))) {
     const parts = String(yearRange).split('-');
     fromYear = fromYear || parts[0];
@@ -64,21 +49,7 @@ function normalizeCatalogItem(item) {
   }
   if (!fromYear && /^\d{4}$/.test(String(yearRange))) fromYear = yearRange;
   if (!toYear && /^\d{4}$/.test(String(yearRange))) toYear = yearRange;
-
-  return {
-    sku,
-    title,
-    type,
-    subject,
-    province,
-    yearRange,
-    fromYear: fromYear || '—',
-    toYear: toYear || '—',
-    fileCount,
-    priceCents,
-    notes,
-    grade: inferGradeFromSku(sku)
-  };
+  return { raw: item, sku, title, type, subject, province, yearRange, fromYear: fromYear || '—', toYear: toYear || '—', fileCount, priceCents, notes, driveUrl, deliveryUrl, grade: inferGradeFromSku(sku) };
 }
 
 function moneyZar(item) {
@@ -88,7 +59,8 @@ function moneyZar(item) {
 }
 
 function buyPlaceholder(sku) {
-  window.location.href = `checkout.html?sku=${encodeURIComponent(sku)}`;
+  const target = `checkout.html?sku=${encodeURIComponent(sku)}`;
+  window.location.href = target;
 }
 
 function downloadPlaceholder(sku) {
@@ -137,8 +109,8 @@ function formatCard(item, featured = false) {
     <div class="price-chip">${moneyZar(item)}</div>
     <div class="card-actions">
       <a class="btn btn-secondary" href="package.html?sku=${encodeURIComponent(item.sku)}">View details</a>
-      <button class="btn btn-primary" type="button" onclick="buyPlaceholder('${item.sku.replace(/'/g, "\\'")}')">Buy package</button>
-      <button class="btn btn-ghost" type="button" onclick="downloadPlaceholder('${item.sku.replace(/'/g, "\\'")}')">Download later</button>
+      <button class="btn btn-primary" type="button" onclick="buyPlaceholder('${item.sku.replace(/'/g, "\'")}')">Buy package</button>
+      <button class="btn btn-ghost" type="button" onclick="downloadPlaceholder('${item.sku.replace(/'/g, "\'")}')">Download later</button>
     </div>
   </article>`;
 }
@@ -201,24 +173,17 @@ async function loadCatalog() {
     catalogItems = items.map(normalizeCatalogItem);
     const generated = payload.generatedAt || payload.generated_at || 'Unknown';
     const sourceLabel = source === window.STUDYHUB_CONFIG.fallbackCatalogUrl ? 'fallback sample data' : 'live catalog';
-    if (metaEl) {
-      metaEl.textContent = `Loaded ${catalogItems.length} package rows from ${sourceLabel}. Generated: ${generated}`;
-      metaEl.classList.add('status-ok');
-    }
+    metaEl.textContent = `Loaded ${catalogItems.length} package rows from ${sourceLabel}. Generated: ${generated}`;
+    metaEl.classList.add('status-ok');
     populateFilters(catalogItems);
     renderFeatured(catalogItems);
     applyFilters();
   } catch (err) {
-    console.error('Catalog load failed:', err);
-    if (metaEl) {
-      metaEl.textContent = 'Catalog could not be loaded.';
-      metaEl.classList.add('status-error');
-      metaEl.title = String(err.message || err);
-    }
-    if (cardsRoot) {
-      cardsRoot.innerHTML = '<article class="card-surface"><h3>Catalog unavailable</h3><p>Check the live URL or fallback JSON file. Open the browser console (F12) to see the exact error.</p></article>';
-    }
+    metaEl.textContent = 'Catalog could not be loaded.';
+    metaEl.classList.add('status-error');
+    cardsRoot.innerHTML = '<article class="card-surface"><h3>Catalog unavailable</h3><p>Check the live URL or fallback JSON file.</p></article>';
     if (featuredRoot) featuredRoot.innerHTML = '';
+    console.error(err);
   }
 }
 
