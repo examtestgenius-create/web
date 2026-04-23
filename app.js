@@ -125,7 +125,13 @@ function normalizeCatalogItem(item) {
 }
 
 function moneyZar(item) {
-  const cents = Number(item.priceCents || item.Price_Cents || item.price_cents || 0);
+  const cents = Number(
+    item.priceCents ||
+    item.Price_Cents ||
+    item.price_cents ||
+    0
+  );
+
   if (!cents) return 'Price not set';
 
   return new Intl.NumberFormat('en-ZA', {
@@ -167,7 +173,9 @@ function featuredScore(item) {
 
 function formatCard(item, featured = false) {
   const tag = featured ? 'Featured package' : item.type;
-  const wrapperClass = featured ? 'featured-card card-surface' : 'card-surface';
+  const wrapperClass = featured
+    ? 'featured-card card-surface'
+    : 'card-surface';
 
   return `
   <article class="${wrapperClass}">
@@ -399,7 +407,9 @@ try {
       }
 
       const target = document.getElementById('packages');
-      if (target) target.scrollIntoView({ behavior: 'smooth' });
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
     });
   });
 } catch (e) {
