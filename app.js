@@ -1,4 +1,4 @@
-// app.js (FULL - Basket enabled)
+// app.js (Basket-enabled)
 
 window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || {};
 window.STUDYHUB_CONFIG.fallbackCatalogUrl =
@@ -10,7 +10,7 @@ window.STUDYHUB_CONFIG.apiBaseUrl =
 window.STUDYHUB_CONFIG.catalogTimeoutMs =
   Number(window.STUDYHUB_CONFIG.catalogTimeoutMs || 8000);
 
-// ------------------- BASKET HELPERS -------------------
+// ------------------- Basket helpers -------------------
 function updateBasketCount() {
   const el = document.getElementById("basketCount");
   if (!el || !window.StudyHubCart) return;
@@ -19,7 +19,7 @@ function updateBasketCount() {
 
 function addToBasketPlaceholder(sku, title, priceCents) {
   if (!window.StudyHubCart) {
-    alert("Basket is not available. Make sure assets/cart.js is loaded.");
+    alert("Basket not available. Make sure assets/cart.js is loaded.");
     return;
   }
   window.StudyHubCart.add({
@@ -32,22 +32,22 @@ function addToBasketPlaceholder(sku, title, priceCents) {
   alert("Added to basket ✅");
 }
 
-// Expose for inline onclick (your cards use onclick)
+// expose for inline onclick in card templates
 window.addToBasketPlaceholder = addToBasketPlaceholder;
 window.updateBasketCount = updateBasketCount;
 
-// ------------------- FETCH HELPERS -------------------
+// ------------------- Fetch helpers -------------------
 async function fetchJsonWithTimeout(url, timeoutMs) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const res = await fetch(url, { cache: "no-store", signal: controller.signal });
+    const res = await fetch(url, {
+      cache: "no-store",
+      signal: controller.signal
+    });
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } finally {
     clearTimeout(timer);
@@ -57,10 +57,7 @@ async function fetchJsonWithTimeout(url, timeoutMs) {
 async function fetchStudyHubCatalog() {
   const tryUrls = [];
 
-  if (window.STUDYHUB_CONFIG.liveCatalogUrl) {
-    tryUrls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
-  }
-
+  if (window.STUDYHUB_CONFIG.liveCatalogUrl) tryUrls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
   tryUrls.push(window.STUDYHUB_CONFIG.fallbackCatalogUrl);
 
   const errors = [];
@@ -74,7 +71,6 @@ async function fetchStudyHubCatalog() {
         err && err.name === "AbortError"
           ? `Timed out after ${window.STUDYHUB_CONFIG.catalogTimeoutMs}ms`
           : (err && err.message ? err.message : String(err));
-
       errors.push(`${url}: ${msg}`);
       console.warn("Catalog source failed:", url, msg);
     }
@@ -83,7 +79,7 @@ async function fetchStudyHubCatalog() {
   throw new Error(errors.join("\n"));
 }
 
-// ------------------- CATALOG NORMALIZATION -------------------
+// ------------------- Catalog normalization -------------------
 function inferGradeFromSku(sku) {
   const m = String(sku || "").match(/SH-G(\d{1,2})-/i);
   return m && m[1] ? m[1] : "";
@@ -134,10 +130,13 @@ function moneyZar(item) {
   const cents = Number(item.priceCents || item.Price_Cents || item.price_cents || 0);
   if (!cents) return "Price not set";
 
-  return new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(cents / 100);
+  return new Intl.NumberFormat("en-ZA", {
+    style: "currency",
+    currency: "ZAR"
+  }).format(cents / 100);
 }
 
-// ------------------- ACTIONS -------------------
+// ------------------- Actions -------------------
 function buyPlaceholder(sku) {
   window.location.href = `checkout.html?sku=${encodeURIComponent(sku)}`;
 }
@@ -146,7 +145,6 @@ function downloadPlaceholder(sku) {
   alert(`Delivery is linked to a paid order. Open checkout for ${sku} to proceed.`);
 }
 
-// ------------------- DOM HOOKS -------------------
 const metaEl = document.getElementById("catalogMeta");
 const cardsRoot = document.getElementById("packageCards");
 const featuredRoot = document.getElementById("featuredCards");
@@ -160,7 +158,6 @@ const contactForm = document.getElementById("contactForm");
 
 let catalogItems = [];
 
-// ------------------- SORT + RENDER -------------------
 function featuredScore(item) {
   let score = item.fileCount || 0;
   if (item.type === "Ultimate Bundle") score += 1000;
@@ -222,13 +219,21 @@ function populateFilters(items) {
   const subjects = uniqueSorted(items.map(i => i.subject));
 
   if (filterType) {
-    filterType.innerHTML = '<option value="ALL">All types</option>' + types.map(v => `<option value="${v}">${v}</option>`).join("");
+    filterType.innerHTML =
+      '<option value="ALL">All types</option>' +
+      types.map(v => `<option value="${v}">${v}</option>`).join('');
   }
+
   if (filterProvince) {
-    filterProvince.innerHTML = '<option value="ALL">All provinces</option>' + provinces.map(v => `<option value="${v}">${v}</option>`).join("");
+    filterProvince.innerHTML =
+      '<option value="ALL">All provinces</option>' +
+      provinces.map(v => `<option value="${v}">${v}</option>`).join('');
   }
+
   if (filterSubject) {
-    filterSubject.innerHTML = '<option value="ALL">All subjects</option>' + subjects.map(v => `<option value="${v}">${v}</option>`).join("");
+    filterSubject.innerHTML =
+      '<option value="ALL">All subjects</option>' +
+      subjects.map(v => `<option value="${v}">${v}</option>`).join('');
   }
 }
 
@@ -247,7 +252,6 @@ function sortItems(items) {
 
 function renderFeatured(items) {
   if (!featuredRoot) return;
-
   const featured = [...items].sort((a, b) => featuredScore(b) - featuredScore(a)).slice(0, 3);
   featuredRoot.innerHTML = featured.map(item => formatCard(item, true)).join("");
 }
@@ -259,7 +263,15 @@ function applyFilters() {
   const term = ((searchInput && searchInput.value) || "").trim().toLowerCase();
 
   let filtered = catalogItems.filter(item => {
-    const textBlob = [item.sku, item.title, item.subject, item.province, item.type, item.notes, `Grade ${item.grade}`].join(" ").toLowerCase();
+    const textBlob = [
+      item.sku,
+      item.title,
+      item.subject,
+      item.province,
+      item.type,
+      item.notes,
+      `Grade ${item.grade}`
+    ].join(" ").toLowerCase();
 
     if (type !== "ALL" && item.type !== type) return false;
     if (province !== "ALL" && item.province !== province) return false;
@@ -287,7 +299,8 @@ async function loadCatalog() {
     catalogItems = items.map(normalizeCatalogItem);
 
     const generated = payload.generatedAt || payload.generated_at || "Unknown";
-    const sourceLabel = (source === window.STUDYHUB_CONFIG.fallbackCatalogUrl) ? "fallback sample data" : "live catalog";
+    const sourceLabel =
+      source === window.STUDYHUB_CONFIG.fallbackCatalogUrl ? "fallback sample data" : "live catalog";
 
     if (metaEl) {
       metaEl.textContent = `Loaded ${catalogItems.length} package rows from ${sourceLabel}. Generated: ${generated}`;
@@ -308,7 +321,8 @@ async function loadCatalog() {
     }
 
     if (cardsRoot) {
-      cardsRoot.innerHTML = '<article class="card-surface"><h3>Catalog unavailable</h3><p>Check the live URL or fallback JSON file. Open the browser console (F12) to see the exact error.</p></article>';
+      cardsRoot.innerHTML =
+        '<article class="card-surface"><h3>Catalog unavailable</h3><p>Check the live URL or fallback JSON file. Open the browser console (F12) to see the exact error.</p></article>';
     }
 
     if (featuredRoot) featuredRoot.innerHTML = "";
@@ -316,7 +330,6 @@ async function loadCatalog() {
   }
 }
 
-// ------------------- FILTER EVENTS -------------------
 [filterType, filterProvince, filterSubject, sortBy].forEach(el => {
   if (el) el.addEventListener("change", applyFilters);
 });
@@ -334,7 +347,7 @@ if (clearFilters) {
   });
 }
 
-// ------------------- CONTACT -------------------
+// Contact (kept as-is)
 if (contactForm) {
   contactForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -353,7 +366,11 @@ if (contactForm) {
         message: data.message || ""
       });
 
-      const res = await fetch(window.STUDYHUB_CONFIG.apiBaseUrl, { method: "POST", body });
+      const res = await fetch(window.STUDYHUB_CONFIG.apiBaseUrl, {
+        method: "POST",
+        body
+      });
+
       if (!res.ok) throw new Error("Request failed");
 
       alert("Message sent.");
@@ -364,7 +381,6 @@ if (contactForm) {
   });
 }
 
-// ------------------- CHIP SEARCH -------------------
 try {
   document.querySelectorAll("[data-search]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -383,3 +399,4 @@ try {
 
 updateBasketCount();
 loadCatalog();
+``
