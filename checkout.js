@@ -172,8 +172,7 @@ if (checkoutForm) {
       }
     }
 
-    // ✅ IMPORTANT: No fetch() here.
-    // We do a normal HTML POST to Apps Script, which returns an HTML page that auto-submits to PayFast.
+    // ✅ No fetch: post HTML form to Apps Script -> Apps Script returns HTML auto-submit to PayFast
     const form = document.createElement("form");
     form.method = "POST";
     form.action = window.STUDYHUB_CONFIG.apiBaseUrl;
