@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>StudyHub Basket</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .basket-item{padding:14px;border:1px solid #1f2937;border-radius:14px;background:#0f172a;margin-bottom:12px}
+    .basket-row{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+    .basket-qty{width:90px}
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="index.html#top" aria-label="StudyHub home">
+      <img class="brand-logo" src="assets/img/studylogo.png" alt="StudyHub logo" />
+    </a>
+    <nav>
+      <a href="index.html#packages">Bundles</a>
+      <a href="basket.html">Basket <span id="basketCount">(0)</span></a>
+      <a href="index.html#contact" class="btn btn-sm btn-primary">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main class="detail-main">
+  <section class="section">
+    <div class="container">
+      <h2>🧺 Basket</h2>
+
+      <div id="items"></div>
+
+      <div class="card-surface" style="padding:16px;border-radius:16px">
+        <div class="basket-row">
+          <strong>Total</strong>
+          <span id="total">—</span>
+        </div>
+
+        <div class="basket-row" style="margin-top:12px">
+          <button class="btn btn-primary" id="toCheckout">Proceed to Checkout</button>
+          <button class="btn btn-ghost" id="clearCart">Clear</button>
+        </div>
+
+        <p class="product-note" id="note"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="assets/cart.js"></script>
+<script>
+  function moneyZar(cents){
+    return new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR'}).format((Number(cents||0))/100);
+  }
+
+  function render(){
+    const cart = window.StudyHubCart.read();
+    document.getElementById("basketCount").textContent = `(${window.StudyHubCart.count()})`;
+
+    const itemsEl = document.getElementById("items");
+    itemsEl.innerHTML = "";
+
+    if(!cart.length){
+      itemsEl.innerHTML = `<div class="card-surface" style="padding:16px;border-radius:16px">Your basket is empty.</div>`;
+      document.getElementById("total").textContent = moneyZar(0);
+      document.getElementById("note").textContent = "";
+      return;
+    }
+
+    cart.forEach(it => {
+      const div = document.createElement("div");
+      div.className = "basket-item";
+      div.innerHTML = `
+        <div class="basket-row">
+          <div>
+            <div style="font-weight:800">${it.title}</div>
+            <div class="product-note">${it.sku} • ${moneyZar(it.priceCents)}</div>
+          </div>
+          <div class="basket-row">
+            <label>Qty
+              <input class="basket-qty" type="number" min="1" value="${it.qty}" data-sku="${it.sku}">
+            </label>
+            <button class="btn btn-ghost" data-remove="${it.sku}">Remove</button>
+          </div>
+        </div>
+      `;
+      itemsEl.appendChild(div);
+    });
+
+    document.getElementById("total").textContent = moneyZar(window.StudyHubCart.totalCents());
+
+    itemsEl.querySelectorAll("input[data-sku]").forEach(inp=>{
+      inp.addEventListener("change", e=>{
+        window.StudyHubCart.setQty(e.target.dataset.sku, e.target.value);
+        render();
+      });
+    });
+
+    itemsEl.querySelectorAll("button[data-remove]").forEach(btn=>{
+      btn.addEventListener("click", e=>{
+        window.StudyHubCart.remove(e.target.dataset.remove);
+        render();
+      });
+    });
+  }
+
+  document.getElementById("toCheckout").addEventListener("click", ()=>{
+    if(window.StudyHubCart.count() < 1){
+      document.getElementById("note").textContent = "Basket is empty.";
+      return;
+    }
+    // basket checkout = checkout.html with no sku
+    window.location.href = "checkout.html";
+  });
+
+  document.getElementById("clearCart").addEventListener("click", ()=>{
+    window.StudyHubCart.clear();
+    render();
+  });
+
+  render();
+</script>
+
+</body>
+</html>
