@@ -11,7 +11,29 @@ function moneyZarCents(cents) {
   return new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(v / 100);
 }
 
+function parseYearRangeFromText(text) {
+  const s = String(text || "").trim();
+  // 2022-2024
+  let m = s.match(/(\d{4})\s*-\s*(\d{4})/);
+  if (m) return { fromYear: m[1], toYear: m[2] };
+  // single 2024
+  m = s.match(/(\d{4})/);
+  if (m) return { fromYear: m[1], toYear: m[1] };
+  return { fromYear: "—", toYear: "—" };
+}
+
+function parseYearRangeFromSku(sku) {
+  // Example: SH-G8-ALL-2022-2024-UB
+  const s = String(sku || "");
+  const m = s.match(/-(\d{4})-(\d{4})-/);
+  if (m) return { fromYear: m[1], toYear: m[2] };
+  const one = s.match(/-(\d{4})-/);
+  if (one) return { fromYear: one[1], toYear: one[1] };
+  return { fromYear: "—", toYear: "—" };
+}
+
 const sku = new URL(window.location.href).searchParams.get("sku") || "";
+
 const titleEl = document.getElementById("checkoutTitle");
 const introEl = document.getElementById("checkoutIntro");
 const skuField = document.getElementById("skuField");
@@ -56,15 +78,57 @@ async function fetchStudyHubCatalog() {
 }
 
 function normalizeCatalogItem(item) {
+  const skuVal = item.SKU || item.sku || "";
+  const titleVal = item.Title || item.title || skuVal || "Package";
+
+  const subjectVal =
+    item.Subject_Name ||
+    item.subject_name ||
+    item.subject_or_all ||
+    item.subject ||
+    "ALL";
+
+  const provinceVal =
+    item.Province_Filter ||
+    item.province_filter ||
+    item.province ||
+    "ALL";
+
+  const priceCentsVal = Number(item.Price_Cents || item.price_cents || item.priceCents || 0);
+  const fileCountVal = Number(item.Included_File_Count || item.included_file_count || item.file_count || item.fileCount || 0);
+
+  // Try explicit fields first
+  let fromYear = item.Coverage_From_Year || item.coverage_from_year || "";
+  let toYear = item.Coverage_To_Year || item.coverage_to_year || "";
+
+  // Try year_or_range if missing
+  const yearOrRange = item.year_or_range || item.Year_Range || item.yearRange || "";
+
+  if (!fromYear || !toYear) {
+    const yr = parseYearRangeFromText(yearOrRange);
+    fromYear = fromYear || yr.fromYear;
+    toYear = toYear || yr.toYear;
+  }
+
+  // If still missing, parse from SKU
+  if ((fromYear === "—" && toYear === "—") || (!fromYear && !toYear)) {
+    const yr2 = parseYearRangeFromSku(skuVal);
+    fromYear = yr2.fromYear;
+    toYear = yr2.toYear;
+  }
+
+  fromYear = String(fromYear || "—");
+  toYear = String(toYear || "—");
+
   return {
-    sku: item.SKU || item.sku || "",
-    title: item.Title || item.title || item.SKU || item.sku || "Package",
-    subject: item.Subject_Name || item.subject_name || item.subject_or_all || "ALL",
-    province: item.Province_Filter || item.province_filter || item.province || "ALL",
-    fromYear: item.Coverage_From_Year || item.coverage_from_year || "—",
-    toYear: item.Coverage_To_Year || item.coverage_to_year || "—",
-    fileCount: Number(item.Included_File_Count || item.included_file_count || item.file_count || 0),
-    priceCents: Number(item.Price_Cents || item.price_cents || 0)
+    sku: skuVal,
+    title: titleVal,
+    subject: subjectVal,
+    province: provinceVal,
+    fromYear,
+    toYear,
+    fileCount: fileCountVal,
+    priceCents: priceCentsVal
   };
 }
 
@@ -89,7 +153,10 @@ async function loadCheckout() {
       introEl.textContent = "Secure checkout via PayFast.";
 
       priceEl.textContent = moneyZarCents(currentItem.priceCents);
-      badgesEl.innerHTML = `<span class="badge">${currentItem.subject}</span><span class="badge">${currentItem.province}</span>`;
+      badgesEl.innerHTML =
+        `<span class="badge">${currentItem.subject}</span>` +
+        `<span class="badge">${currentItem.province}</span>`;
+
       fromYearMeta.textContent = currentItem.fromYear;
       toYearMeta.textContent = currentItem.toYear;
       filesMeta.textContent = currentItem.fileCount;
@@ -99,6 +166,7 @@ async function loadCheckout() {
       console.error(err);
     }
   } else {
+    // Basket mode
     if (!window.StudyHubCart) {
       titleEl.textContent = "Basket not available";
       introEl.textContent = "Cart module missing.";
@@ -120,9 +188,11 @@ async function loadCheckout() {
 
     titleEl.textContent = "Checkout — Basket";
     introEl.textContent = "Secure checkout for multiple bundles via PayFast.";
+
     skuField.value = "BASKET";
     priceEl.textContent = moneyZarCents(window.StudyHubCart.totalCents());
     badgesEl.innerHTML = `<span class="badge">Multiple items</span>`;
+
     filesMeta.textContent = cart.reduce((s, x) => s + Number(x.qty || 0), 0);
     fromYearMeta.textContent = "—";
     toYearMeta.textContent = "—";
@@ -172,7 +242,8 @@ if (checkoutForm) {
       }
     }
 
-    // ✅ No fetch: post HTML form to Apps Script -> Apps Script returns HTML auto-submit to PayFast
+    // ✅ NO fetch for checkout: HTML POST to Apps Script (doPost)
+    // Apps Script handles POST with doPost(e). [2](https://dj-payfast.readthedocs.io/en/latest/troubleshooting.html)
     const form = document.createElement("form");
     form.method = "POST";
     form.action = window.STUDYHUB_CONFIG.apiBaseUrl;
