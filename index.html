@@ -4,30 +4,40 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>StudyHub | Grade 8–12 Exam Papers, Memos & Free Study Tools</title>
+
   <meta name="description" content="Past exam papers and memos for Grade 8–12. Free study tools, secure PayFast checkout, and instant ZIP delivery after payment confirmation." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/" />
+
+  <link rel="canonical" href="https://examtestpaper.co.za/" />
+
   <meta property="og:type" content="website" />
   <meta property="og:title" content="StudyHub | Grade 8–12 Exam Papers & Memos" />
   <meta property="og:description" content="Free study tools + paid bundles. Secure PayFast checkout. Instant ZIP delivery." />
-  <meta property="og:image" content="https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/assets/img/hero-study.jpg" />
-  <meta property="og:url" content="https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/" />
+  <meta property="og:image" content="https://examtestpaper.co.za/assets/img/hero-study.jpg" />
+  <meta property="og:url" content="https://examtestpaper.co.za/" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
   <header class="site-header">
     <div class="container nav">
       <a class="brand" href="#top" aria-label="StudyHub home">
         <img class="brand-logo" src="assets/img/studylogo.png" alt="StudyHub logo" />
       </a>
+
       <nav>
         <a href="#grade-picks">Grades</a>
         <a href="#free">Free</a>
         <a href="#packages">Bundles</a>
         <a href="#filters">Search</a>
+
+        <a href="basket.html">Basket <span id="basketCount">(0)</span></a>
+
         <a href="#contact" class="btn btn-sm btn-primary">Contact</a>
       </nav>
     </div>
@@ -85,7 +95,7 @@
       <div class="container trust-items">
         <span>Instant ZIP delivery</span>
         <span>Secure PayFast payment</span>
-        <span>Organised by grade & year</span>
+        <span>Organised by grade &amp; year</span>
         <span>Free study tools</span>
       </div>
     </section>
@@ -97,6 +107,7 @@
           <h2>Pick your grade and start</h2>
           <p>Tap a grade to filter bundles instantly (you can still search by subject or province).</p>
         </div>
+
         <div class="card-surface" style="padding:18px">
           <div class="detail-actions" style="margin-top:0">
             <button class="btn btn-secondary" type="button" data-search="Grade 8">Grade 8</button>
@@ -118,10 +129,28 @@
           <h2>Free study tools (no signup)</h2>
           <p>Download instantly — planning templates, exam tips, and a sample pack.</p>
         </div>
+
         <div class="cards three-up">
-          <article class="card-surface"><span class="card-tag">Free</span><h3>Study timetable template</h3><p>Plan your week and stay consistent.</p><a class="btn btn-secondary" href="free/study-timetable.pdf">Download PDF</a></article>
-          <article class="card-surface"><span class="card-tag">Free</span><h3>Exam tips & techniques</h3><p>Time management and answering strategies.</p><a class="btn btn-secondary" href="free/exam-tips.pdf">Download PDF</a></article>
-          <article class="card-surface"><span class="card-tag">Free</span><h3>Sample paper + memo</h3><p>Preview the bundle quality before you buy.</p><a class="btn btn-secondary" href="free/sample-paper.zip">Download ZIP</a></article>
+          <article class="card-surface">
+            <span class="card-tag">Free</span>
+            <h3>Study timetable template</h3>
+            <p>Plan your week and stay consistent.</p>
+            <a class="btn btn-secondary" href="free/study-timetable.pdf">Download PDF</a>
+          </article>
+
+          <article class="card-surface">
+            <span class="card-tag">Free</span>
+            <h3>Exam tips &amp; techniques</h3>
+            <p>Time management and answering strategies.</p>
+            <a class="btn btn-secondary" href="free/exam-tips.pdf">Download PDF</a>
+          </article>
+
+          <article class="card-surface">
+            <span class="card-tag">Free</span>
+            <h3>Sample paper + memo</h3>
+            <p>Preview the bundle quality before you buy.</p>
+            <a class="btn btn-secondary" href="free/sample-paper.zip">Download ZIP</a>
+          </article>
         </div>
       </div>
     </section>
@@ -133,16 +162,22 @@
           <h2>Everything you need for exam prep — in one place</h2>
           <p>Less scrolling, more studying. Bundles are structured so you can focus on practice and revision.</p>
         </div>
+
         <div class="split">
           <article class="card-surface" style="padding:22px">
             <h3>Find what you need fast</h3>
             <p class="product-note">Use grade picks, subject chips, search and filters to locate the right bundle in seconds.</p>
-            <div class="badge-row"><span class="badge">Grade</span><span class="badge">Subject</span><span class="badge">Year</span></div>
+            <div class="badge-row">
+              <span class="badge">Grade</span><span class="badge">Subject</span><span class="badge">Year</span>
+            </div>
           </article>
+
           <article class="card-surface" style="padding:22px">
             <h3>Buy once, download instantly</h3>
             <p class="product-note">PayFast checkout is secure. After confirmation, your delivery link appears on the success page.</p>
-            <div class="badge-row"><span class="badge">PayFast</span><span class="badge">ZIP delivery</span><span class="badge">Receipt</span></div>
+            <div class="badge-row">
+              <span class="badge">PayFast</span><span class="badge">ZIP delivery</span><span class="badge">Receipt</span>
+            </div>
           </article>
         </div>
       </div>
@@ -166,12 +201,40 @@
           <h2>Search, filter and sort</h2>
           <p>Search by SKU, subject or province, then refine your results.</p>
         </div>
+
         <div class="filter-bar card-surface">
-          <label class="search-wide">Search catalog<input id="searchInput" type="search" placeholder="Search by SKU, subject, province…" /></label>
-          <label>Bundle type<select id="filterType"><option value="ALL">All types</option></select></label>
-          <label>Province<select id="filterProvince"><option value="ALL">All provinces</option></select></label>
-          <label>Subject<select id="filterSubject"><option value="ALL">All subjects</option></select></label>
-          <label>Sort by<select id="sortBy"><option value="featured">Featured first</option><option value="priceAsc">Price: low to high</option><option value="priceDesc">Price: high to low</option><option value="filesDesc">Files: high to low</option><option value="nameAsc">Name: A to Z</option></select></label>
+          <label class="search-wide">Search catalog
+            <input id="searchInput" type="search" placeholder="Search by SKU, subject, province…" />
+          </label>
+
+          <label>Bundle type
+            <select id="filterType">
+              <option value="ALL">All types</option>
+            </select>
+          </label>
+
+          <label>Province
+            <select id="filterProvince">
+              <option value="ALL">All provinces</option>
+            </select>
+          </label>
+
+          <label>Subject
+            <select id="filterSubject">
+              <option value="ALL">All subjects</option>
+            </select>
+          </label>
+
+          <label>Sort by
+            <select id="sortBy">
+              <option value="featured">Featured first</option>
+              <option value="priceAsc">Price: low to high</option>
+              <option value="priceDesc">Price: high to low</option>
+              <option value="filesDesc">Files: high to low</option>
+              <option value="nameAsc">Name: A to Z</option>
+            </select>
+          </label>
+
           <button class="btn btn-secondary" id="clearFilters" type="button">Clear</button>
         </div>
       </div>
@@ -184,6 +247,7 @@
           <h2>Browse bundles</h2>
           <p id="catalogMeta">Loading catalog…</p>
         </div>
+
         <div id="packageCards" class="cards three-up"></div>
       </div>
     </section>
@@ -195,11 +259,27 @@
           <h2>Built for real exam prep</h2>
           <p>Designed to reduce stress: less hunting, more practice.</p>
         </div>
+
         <div class="testimonials">
-          <article class="quote card-surface"><span class="card-tag">Learner</span><p>"I found the right papers fast and practiced with the memo straight away."</p><strong>Grade 11 learner</strong></article>
-          <article class="quote card-surface"><span class="card-tag">Parent</span><p>"The bundles are organised and easy to download. Great time-saver."</p><strong>Parent of Grade 10 learner</strong></article>
-          <article class="quote card-surface"><span class="card-tag">Teacher</span><p>"Good structure by year and subject — makes revision sessions easier."</p><strong>Teacher</strong></article>
+          <article class="quote card-surface">
+            <span class="card-tag">Learner</span>
+            <p>"I found the right papers fast and practiced with the memo straight away."</p>
+            <strong>Grade 11 learner</strong>
+          </article>
+
+          <article class="quote card-surface">
+            <span class="card-tag">Parent</span>
+            <p>"The bundles are organised and easy to download. Great time-saver."</p>
+            <strong>Parent of Grade 10 learner</strong>
+          </article>
+
+          <article class="quote card-surface">
+            <span class="card-tag">Teacher</span>
+            <p>"Good structure by year and subject — makes revision sessions easier."</p>
+            <strong>Teacher</strong>
+          </article>
         </div>
+
         <p class="section-note">Note: testimonials are illustrative placeholders; replace with real quotes when available.</p>
       </div>
     </section>
@@ -211,10 +291,22 @@
           <h2>Quick answers</h2>
           <p>Common questions from learners and parents.</p>
         </div>
+
         <div class="faq">
-          <details><summary>What do I get when I buy a bundle?</summary><p class="product-note">An organised ZIP containing available exam papers and memos for your selected grade/subject/year range.</p></details>
-          <details><summary>How does delivery work?</summary><p class="product-note">After PayFast confirmation, the success page shows the delivery link. You also get an email receipt.</p></details>
-          <details><summary>Do you have free resources?</summary><p class="product-note">Yes — timetable templates, exam tips, and sample packs are available in the Free section.</p></details>
+          <details>
+            <summary>What do I get when I buy a bundle?</summary>
+            <p class="product-note">An organised ZIP containing available exam papers and memos for your selected grade/subject/year range.</p>
+          </details>
+
+          <details>
+            <summary>How does delivery work?</summary>
+            <p class="product-note">After PayFast confirmation, the success page shows the delivery link. You also get an email receipt.</p>
+          </details>
+
+          <details>
+            <summary>Do you have free resources?</summary>
+            <p class="product-note">Yes — timetable templates, exam tips, and sample packs are available in the Free section.</p>
+          </details>
         </div>
       </div>
     </section>
@@ -226,10 +318,20 @@
           <h2>Need help choosing a bundle?</h2>
           <p>Send a message and we’ll help you find the right grade/subject bundle.</p>
         </div>
+
         <form class="contact-card card-surface" id="contactForm">
-          <label>Name<input type="text" name="name" placeholder="Your name" required /></label>
-          <label>Email<input type="email" name="email" placeholder="Your email" required /></label>
-          <label>Message<textarea rows="4" name="message" placeholder="Grade, subject, year range…"></textarea></label>
+          <label>Name
+            <input type="text" name="name" placeholder="Your name" required />
+          </label>
+
+          <label>Email
+            <input type="email" name="email" placeholder="Your email" required />
+          </label>
+
+          <label>Message
+            <textarea rows="4" name="message" placeholder="Grade, subject, year range…"></textarea>
+          </label>
+
           <button class="btn btn-primary" type="submit">Send</button>
         </form>
       </div>
@@ -248,16 +350,18 @@
     </div>
   </footer>
 
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <!-- Script load order (keep exactly) -->
+  <script src="config.js?v=20260426"></script>
+  <script src="assets/cart.js?v=20260426"></script>
+  <script src="app.js?v=20260426"></script>
 
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
     "name": "StudyHub",
-    "url": "https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/",
-    "logo": "https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/assets/img/studylogo.png",
+    "url": "https://examtestpaper.co.za/",
+    "logo": "https://examtestpaper.co.za/assets/img/studylogo.png",
     "description": "StudyHub provides Grade 8–12 exam paper bundles, memos and free study tools with secure online delivery.",
     "address": {"@type":"PostalAddress","addressCountry":"ZA"}
   }
