@@ -1,4 +1,4 @@
-// app.js (Basket-enabled)
+// app.js (Live + Basket enabled)
 
 window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || {};
 window.STUDYHUB_CONFIG.fallbackCatalogUrl =
@@ -32,7 +32,7 @@ function addToBasketPlaceholder(sku, title, priceCents) {
   alert("Added to basket ✅");
 }
 
-// expose for inline onclick in card templates
+// Expose for inline onclick in templates
 window.addToBasketPlaceholder = addToBasketPlaceholder;
 window.updateBasketCount = updateBasketCount;
 
@@ -42,11 +42,7 @@ async function fetchJsonWithTimeout(url, timeoutMs) {
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const res = await fetch(url, {
-      cache: "no-store",
-      signal: controller.signal
-    });
-
+    const res = await fetch(url, { cache: "no-store", signal: controller.signal });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } finally {
@@ -56,12 +52,10 @@ async function fetchJsonWithTimeout(url, timeoutMs) {
 
 async function fetchStudyHubCatalog() {
   const tryUrls = [];
-
   if (window.STUDYHUB_CONFIG.liveCatalogUrl) tryUrls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
   tryUrls.push(window.STUDYHUB_CONFIG.fallbackCatalogUrl);
 
   const errors = [];
-
   for (const url of tryUrls) {
     try {
       const payload = await fetchJsonWithTimeout(url, window.STUDYHUB_CONFIG.catalogTimeoutMs);
@@ -89,11 +83,23 @@ function normalizeCatalogItem(item) {
   const sku = item.SKU || item.sku || "";
   const title = item.Title || item.title || sku || "Package";
   const type = item.Bundle_Type || item.bundle_type || item.type || "Package";
-  const subject = item.Subject_Name || item.subject_name || item.subject_or_all || "ALL";
-  const province = item.Province_Filter || item.province_filter || item.province || "ALL";
-  const yearRange = item.year_or_range || item.Year_Range || "";
-  const fileCount = Number(item.Included_File_Count || item.included_file_count || item.file_count || 0);
-  const priceCents = Number(item.Price_Cents || item.price_cents || 0);
+
+  const subject =
+    item.Subject_Name ||
+    item.subject_name ||
+    item.subject_or_all ||
+    item.subject ||
+    "ALL";
+
+  const province =
+    item.Province_Filter ||
+    item.province_filter ||
+    item.province ||
+    "ALL";
+
+  const yearRange = item.year_or_range || item.Year_Range || item.yearRange || "";
+  const fileCount = Number(item.Included_File_Count || item.included_file_count || item.file_count || item.fileCount || 0);
+  const priceCents = Number(item.Price_Cents || item.price_cents || item.priceCents || 0);
   const notes = item.Notes || item.notes || item.description || "";
 
   let fromYear = item.Coverage_From_Year || item.coverage_from_year || "";
@@ -129,11 +135,7 @@ function normalizeCatalogItem(item) {
 function moneyZar(item) {
   const cents = Number(item.priceCents || item.Price_Cents || item.price_cents || 0);
   if (!cents) return "Price not set";
-
-  return new Intl.NumberFormat("en-ZA", {
-    style: "currency",
-    currency: "ZAR"
-  }).format(cents / 100);
+  return new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(cents / 100);
 }
 
 // ------------------- Actions -------------------
@@ -145,6 +147,11 @@ function downloadPlaceholder(sku) {
   alert(`Delivery is linked to a paid order. Open checkout for ${sku} to proceed.`);
 }
 
+// Expose for inline onclick
+window.buyPlaceholder = buyPlaceholder;
+window.downloadPlaceholder = downloadPlaceholder;
+
+// ------------------- DOM hooks -------------------
 const metaEl = document.getElementById("catalogMeta");
 const cardsRoot = document.getElementById("packageCards");
 const featuredRoot = document.getElementById("featuredCards");
@@ -158,6 +165,7 @@ const contactForm = document.getElementById("contactForm");
 
 let catalogItems = [];
 
+// ------------------- Sorting + rendering -------------------
 function featuredScore(item) {
   let score = item.fileCount || 0;
   if (item.type === "Ultimate Bundle") score += 1000;
@@ -221,19 +229,19 @@ function populateFilters(items) {
   if (filterType) {
     filterType.innerHTML =
       '<option value="ALL">All types</option>' +
-      types.map(v => `<option value="${v}">${v}</option>`).join('');
+      types.map(v => `<option value="${v}">${v}</option>`).join("");
   }
 
   if (filterProvince) {
     filterProvince.innerHTML =
       '<option value="ALL">All provinces</option>' +
-      provinces.map(v => `<option value="${v}">${v}</option>`).join('');
+      provinces.map(v => `<option value="${v}">${v}</option>`).join("");
   }
 
   if (filterSubject) {
     filterSubject.innerHTML =
       '<option value="ALL">All subjects</option>' +
-      subjects.map(v => `<option value="${v}">${v}</option>`).join('');
+      subjects.map(v => `<option value="${v}">${v}</option>`).join("");
   }
 }
 
@@ -252,6 +260,7 @@ function sortItems(items) {
 
 function renderFeatured(items) {
   if (!featuredRoot) return;
+
   const featured = [...items].sort((a, b) => featuredScore(b) - featuredScore(a)).slice(0, 3);
   featuredRoot.innerHTML = featured.map(item => formatCard(item, true)).join("");
 }
@@ -263,21 +272,14 @@ function applyFilters() {
   const term = ((searchInput && searchInput.value) || "").trim().toLowerCase();
 
   let filtered = catalogItems.filter(item => {
-    const textBlob = [
-      item.sku,
-      item.title,
-      item.subject,
-      item.province,
-      item.type,
-      item.notes,
-      `Grade ${item.grade}`
+    const blob = [
+      item.sku, item.title, item.subject, item.province, item.type, item.notes, `Grade ${item.grade}`
     ].join(" ").toLowerCase();
 
     if (type !== "ALL" && item.type !== type) return false;
     if (province !== "ALL" && item.province !== province) return false;
     if (subject !== "ALL" && item.subject !== subject) return false;
-    if (term && !textBlob.includes(term)) return false;
-
+    if (term && !blob.includes(term)) return false;
     return true;
   });
 
@@ -299,8 +301,7 @@ async function loadCatalog() {
     catalogItems = items.map(normalizeCatalogItem);
 
     const generated = payload.generatedAt || payload.generated_at || "Unknown";
-    const sourceLabel =
-      source === window.STUDYHUB_CONFIG.fallbackCatalogUrl ? "fallback sample data" : "live catalog";
+    const sourceLabel = (source === window.STUDYHUB_CONFIG.fallbackCatalogUrl) ? "fallback sample data" : "live catalog";
 
     if (metaEl) {
       metaEl.textContent = `Loaded ${catalogItems.length} package rows from ${sourceLabel}. Generated: ${generated}`;
@@ -330,6 +331,7 @@ async function loadCatalog() {
   }
 }
 
+// ------------------- Events -------------------
 [filterType, filterProvince, filterSubject, sortBy].forEach(el => {
   if (el) el.addEventListener("change", applyFilters);
 });
@@ -347,12 +349,13 @@ if (clearFilters) {
   });
 }
 
-// Contact (kept as-is)
+// Contact (kept)
 if (contactForm) {
   contactForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const data = Object.fromEntries(new FormData(contactForm).entries());
+
     if (!window.STUDYHUB_CONFIG.apiBaseUrl) {
       alert("Contact endpoint not configured.");
       return;
@@ -381,6 +384,7 @@ if (contactForm) {
   });
 }
 
+// Chip search
 try {
   document.querySelectorAll("[data-search]").forEach(btn => {
     btn.addEventListener("click", () => {
