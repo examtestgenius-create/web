@@ -5,49 +5,58 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>StudyHub Checkout</title>
   <meta name="description" content="StudyHub checkout" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  https://fonts.googleapis.com
+  https://fonts.gstatic.com
+  https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap
+  styles.css
 </head>
+
 <body>
   <header class="site-header">
     <div class="container nav">
-      <a class="brand" href="index.html#top" aria-label="StudyHub home">
-        <img class="brand-logo" src="assets/img/studylogo.png" alt="StudyHub logo" />
+      index.html#top
+        assets/img/studylogo.png
       </a>
       <nav>
-        <a href="index.html#packages">Packages</a>
-        <a href="index.html#contact">Contact</a>
+        index.html#packagesBundles</a>
+        basket.htmlBasket <span id="basketCount">(0)</span></a>
+        index.html#contactContact</a>
       </nav>
     </div>
   </header>
+
   <main class="detail-main">
     <section class="section">
       <div class="container">
-        <a class="back-link" href="index.html#packages">← Back to packages</a>
+        index.html#packages← Back to bundles</a>
+
         <div class="detail-layout">
           <section class="detail-panel card-surface">
             <span class="eyebrow">Secure checkout</span>
             <h2 id="checkoutTitle">Loading package…</h2>
             <p id="checkoutIntro">Please wait while the checkout loads.</p>
+
             <form id="checkoutForm" class="checkout-form">
               <label>Package SKU<input type="text" id="skuField" name="sku" readonly /></label>
               <label>Name<input type="text" name="customer_name" required /></label>
               <label>Email<input type="email" name="customer_email" required /></label>
               <label>Phone (optional)<input type="text" name="customer_phone" /></label>
               <label>Notes (optional)<textarea rows="4" name="notes" placeholder="Anything special about the order?"></textarea></label>
+
               <div class="detail-actions">
                 <button class="btn btn-primary" type="submit">Continue to PayFast</button>
                 <button class="btn btn-ghost" type="button" id="payLaterBtn">Pay later</button>
               </div>
             </form>
+
             <p id="checkoutStatus" class="product-note"></p>
           </section>
+
           <aside class="detail-panel card-surface product-sidebar">
             <h3>Order summary</h3>
             <div class="product-price" id="checkoutPrice">—</div>
             <div class="badge-row" id="checkoutBadges"></div>
+
             <div class="detail-meta-list">
               <div class="detail-meta-item"><strong>From year</strong><span id="fromYearMeta">—</span></div>
               <div class="detail-meta-item"><strong>To year</strong><span id="toYearMeta">—</span></div>
@@ -58,14 +67,17 @@
       </div>
     </section>
   </main>
+
   <footer class="site-footer">
     <div class="container footer-row">
       <span>© StudyHub</span>
       <span>Secure checkout</span>
     </div>
   </footer>
-  <script src="config.js"></script>
-<script src="assets/cart.js"></script>
-<script src="checkout.js"></script>
+
+  <!-- IMPORTANT order -->
+  config.js?v=20260427script>
+  assets/cart.js?v=20260427script>
+  checkout.js?v=20260427script>
 </body>
 </html>
