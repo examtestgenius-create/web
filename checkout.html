@@ -4,20 +4,33 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>StudyHub Checkout</title>
-  <meta name="description" content="StudyHub checkout" />
 
-  <link rel="preconnect" href="https://fonts.googleapiscom
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="esheet" href="stylesr class="site-header">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- ✅ CSS (make sure this is a proper <link> tag, not text) -->
+  <link rel="stylesheet" href="styles.css?v=20260427" />
+</head>
+
+<body>
+  <header class="site-header">
     <div class="container nav">
-      <a class="brand" href="index.html#top" aria-label="StudyHubimg/studylogo.png" alt="StudyHub logoesBundles</a>
-        <a hrefhtmlBasket <span id="basketCount">(0)</span></a>
-        <a href="index.html#contact" class="btn btn-sm </div>
+      <a class="brand" href="index.html#top" aria-label="StudyHub home">
+        <img class="brand-logo" src="assets/img/studylogo.png" alt="StudyHub logo" />
+      </a>
+      <nav>
+        <a href="index.html#packages">Bundles</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
   </header>
 
   <main class="detail-main">
     <section class="section">
       <div class="container">
-        index.html#packages← Back to bundles</a>
+        <a class="back-link" href="index.html#packages">← Back to bundles</a>
 
         <div class="detail-layout">
           <section class="detail-panel card-surface">
@@ -26,11 +39,25 @@
             <p id="checkoutIntro">Please wait while the checkout loads.</p>
 
             <form id="checkoutForm" class="checkout-form">
-              <label>Package SKU<input type="text" id="skuField" name="sku" readonly /></label>
-              <label>Name<input type="text" name="customer_name" required /></label>
-              <label>Email<input type="email" name="customer_email" required /></label>
-              <label>Phone (optional)<input type="text" name="customer_phone" /></label>
-              <label>Notes (optional)<textarea rows="4" name="notes" placeholder="Anything special about the order?"></textarea></label>
+              <label>Package SKU
+                <input type="text" id="skuField" name="sku" readonly />
+              </label>
+
+              <label>Name
+                <input type="text" name="customer_name" required />
+              </label>
+
+              <label>Email
+                <input type="email" name="customer_email" required />
+              </label>
+
+              <label>Phone (optional)
+                <input type="text" name="customer_phone" />
+              </label>
+
+              <label>Notes (optional)
+                <textarea rows="4" name="notes" placeholder="Anything special about the order?"></textarea>
+              </label>
 
               <div class="detail-actions">
                 <button class="btn btn-primary" type="submit">Continue to PayFast</button>
@@ -45,14 +72,14 @@
             <h3>Order summary</h3>
             <div class="product-price" id="checkoutPrice">—</div>
             <div class="badge-row" id="checkoutBadges"></div>
-
             <div class="detail-meta-list">
               <div class="detail-meta-item"><strong>From year</strong><span id="fromYearMeta">—</span></div>
               <div class="detail-meta-item"><strong>To year</strong><span id="toYearMeta">—</span></div>
-              <div class="detail-meta-item"><strong>Included files</strong><span id="filesMeta">—</span></div>
+              <div class="detail-meta-item"><strong>Paper sets included</strong><span id="filesMeta">—</span></div>
             </div>
           </aside>
         </div>
+
       </div>
     </section>
   </main>
@@ -64,9 +91,8 @@
     </div>
   </footer>
 
-  <!-- Correct script order (cache-busting while testing) -->
-config.js?v=20260428</script>
-<script src="assets/cart.js?v=20260428"></script>
-<script src="checkout.js?v=20260428"></script>
+  <!-- ✅ IMPORTANT: scripts must be real script tags -->
+  <script src="config.js?v=20260427"></script>
+  <script src="checkout.js?v=20260427"></script>
 </body>
 </html>
