@@ -1,0 +1,31 @@
+CHECKOUT ISSUE DIAGNOSIS
+
+Root cause confirmed:
+- The live checkout page was still the old scaffold checkout.html.
+- That old checkout.html only loaded checkout.js and did NOT load config.js first.
+- Because config.js was not loaded by checkout.html, window.STUDYHUB_CONFIG.apiBaseUrl was missing on the page even though the config.js file itself had the correct backend URL.
+- The old scaffold page also showed the buttons "Create order" and "Pay later placeholder", which confirms the live checkout.html file was not the final PayFast checkout page.
+
+Hotfix v2 action:
+- Adds/replaces checkout.html so it explicitly loads:
+  1. config.js
+  2. checkout.js
+- Replaces checkout.js with the PayFast createCheckout -> POST to PayFast flow.
+- Includes success.html, cancel.html, success.js and compatibility aliases.
+
+Files to overwrite on the live site root:
+- config.js
+- checkout.html
+- checkout.js
+- success.html
+- cancel.html
+- success.js
+- order-created.html
+- payment-success.html
+- payment-cancelled.html
+
+Expected result after upload:
+- Checkout page no longer shows "Create order" / "Pay later placeholder".
+- Checkout button label becomes "Continue to PayFast".
+- Clicking the button redirects to PayFast first.
+- After payment, the site returns to success.html and polls the backend order-status endpoint.

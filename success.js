@@ -7,14 +7,12 @@ const orderRefEl = document.getElementById('orderRef');
 const params = new URL(window.location.href).searchParams;
 const orderId = params.get('order') || params.get('m_payment_id') || '';
 if (orderRefEl) orderRefEl.textContent = orderId || 'Pending';
-
 function setStatus(text, className = 'warning') {
   if (statusEl) {
     statusEl.textContent = text;
     statusEl.className = className;
   }
 }
-
 async function checkOrderStatus() {
   if (!orderId) {
     setStatus('No order reference was returned from payment. Please contact support with your email address.', 'error');
@@ -56,5 +54,4 @@ async function checkOrderStatus() {
   }
   setStatus('Payment is still being confirmed. Please refresh this page in a few minutes or contact support if needed.', 'warning');
 }
-
 checkOrderStatus();

@@ -1,5 +1,4 @@
 function getConfig() { return window.STUDYHUB_CONFIG || {}; }
-
 async function fetchCatalog() {
   const cfg = getConfig();
   const urls = [];
@@ -18,7 +17,6 @@ async function fetchCatalog() {
   }
   throw new Error(errors.join(' | ') || 'Catalog unavailable');
 }
-
 function normalized(item) {
   return {
     sku: String(item.SKU ?? item.sku ?? ''),
@@ -33,11 +31,9 @@ function normalized(item) {
     priceCents: Number(item.Price_Cents ?? item.price_cents ?? item.priceCents ?? 0)
   };
 }
-
 function moneyZar(cents) {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format((Number(cents || 0)) / 100);
 }
-
 function buildAndSubmitPayFastForm(url, payload) {
   const form = document.createElement('form');
   form.method = 'POST';
@@ -53,7 +49,6 @@ function buildAndSubmitPayFastForm(url, payload) {
   document.body.appendChild(form);
   form.submit();
 }
-
 const sku = new URL(window.location.href).searchParams.get('sku') || '';
 const els = {
   title: document.getElementById('checkoutTitle'),
@@ -68,7 +63,6 @@ const els = {
   status: document.getElementById('checkoutStatus'),
   summaryTitle: document.getElementById('summaryTitle')
 };
-
 async function loadCheckout() {
   if (!sku) {
     els.title.textContent = 'Missing package';
@@ -97,7 +91,6 @@ async function loadCheckout() {
     els.intro.textContent = 'The package could not be loaded.';
   }
 }
-
 if (els.form) {
   els.form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -140,5 +133,4 @@ if (els.form) {
     }
   });
 }
-
 loadCheckout();
