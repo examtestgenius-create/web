@@ -1,0 +1,50 @@
+{
+  "version": "2.1",
+  "generatedAt": "2026-04-29T18:52:14+02:00",
+  "items": [
+    {
+      "SKU": "SH-G12-MATHEMATICS-2022-2026-MB",
+      "Bundle_Type": "Master Bundle",
+      "Subject_Name": "Mathematics",
+      "Province_Filter": "National",
+      "Notes": "Grade 12 Mathematics master bundle.",
+      "Coverage_From_Year": 2022,
+      "Coverage_To_Year": 2026,
+      "Included_File_Count": 48,
+      "Price_Cents": 19900
+    },
+    {
+      "SKU": "SH-G12-ALL-2026-SY",
+      "Bundle_Type": "Single Year",
+      "Subject_Name": "ALL",
+      "Province_Filter": "National",
+      "Notes": "Grade 12 all-subject single-year bundle.",
+      "Coverage_From_Year": 2026,
+      "Coverage_To_Year": 2026,
+      "Included_File_Count": 120,
+      "Price_Cents": 29900
+    },
+    {
+      "SKU": "SH-G11-PHYSICAL-SCIENCES-2024-SS",
+      "Bundle_Type": "Single Subject",
+      "Subject_Name": "Physical Sciences",
+      "Province_Filter": "National",
+      "Notes": "Grade 11 Physical Sciences single-subject bundle.",
+      "Coverage_From_Year": 2024,
+      "Coverage_To_Year": 2024,
+      "Included_File_Count": 20,
+      "Price_Cents": 5900
+    },
+    {
+      "SKU": "SH-G10-ALL-2022-2026-UB",
+      "Bundle_Type": "Ultimate Bundle",
+      "Subject_Name": "ALL",
+      "Province_Filter": "National",
+      "Notes": "Grade 10 full ultimate bundle.",
+      "Coverage_From_Year": 2022,
+      "Coverage_To_Year": 2026,
+      "Included_File_Count": 220,
+      "Price_Cents": 24900
+    }
+  ]
+}

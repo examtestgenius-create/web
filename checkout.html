@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
+  <meta name="description" content="Complete your purchase securely with PayFast and receive your download link after backend payment confirmation." />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <link rel="canonical" href="https://examtestpaper.co.za/checkout.html" />
+  <meta name="theme-color" content="#2F76FF" />
+  <meta property="og:locale" content="en_ZA" />
+  <meta property="og:site_name" content="StudyHub | examtestpaper.co.za" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Secure Checkout | StudyHub" />
+  <meta property="og:description" content="Complete your purchase securely with PayFast and receive your download link after backend payment confirmation." />
+  <meta property="og:url" content="https://examtestpaper.co.za/checkout.html" />
+  <meta property="og:image" content="https://examtestpaper.co.za/assets/img/hero-study.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Secure Checkout | StudyHub" />
+  <meta name="twitter:description" content="Complete your purchase securely with PayFast and receive your download link after backend payment confirmation." />
+  <meta name="twitter:image" content="https://examtestpaper.co.za/assets/img/hero-study.jpg" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Secure Checkout | StudyHub",
+    "description": "Complete your purchase securely with PayFast and receive your download link after backend payment confirmation.",
+    "url": "https://examtestpaper.co.za/checkout.html",
+    "isPartOf": {"@type": "WebSite", "name": "StudyHub | examtestpaper.co.za", "url": "https://examtestpaper.co.za/"},
+    "publisher": {"@type": "Organization", "name": "StudyHub", "url": "https://examtestpaper.co.za/", "logo": {"@type": "ImageObject", "url": "https://examtestpaper.co.za/assets/img/studylogo.png"}}
+  }
+  </script>
+<title>Secure Checkout | StudyHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="index.html#top" aria-label="StudyHub home">
+        <img class="brand-logo" src="assets/img/studylogo.png" alt="StudyHub logo" />
+      </a>
+      <nav>
+        <a href="index.html#packages">Packages</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="detail-main">
+    <section class="section">
+      <div class="container">
+        <a class="back-link" href="index.html#packages">← Back to packages</a>
+        <div class="detail-layout">
+          <section class="detail-panel card-surface">
+            <span class="eyebrow">Checkout scaffold</span>
+            <h2 id="checkoutTitle">Loading package…</h2>
+            <p id="checkoutIntro">This page captures order details and is ready for final payment wiring later.</p>
+            <form id="checkoutForm" class="checkout-form">
+              <label>Package SKU<input type="text" id="skuField" name="sku" readonly /></label>
+              <label>Name<input type="text" name="customer_name" required /></label>
+              <label>Email<input type="email" name="customer_email" required /></label>
+              <label>Phone (optional)<input type="text" name="customer_phone" /></label>
+              <label>Notes (optional)<textarea rows="4" name="notes" placeholder="Anything special about the order?"></textarea></label>
+              <div class="detail-actions">
+                <button class="btn btn-primary" type="submit">Create order</button>
+                <button class="btn btn-ghost" type="button" id="payLaterBtn">Pay later placeholder</button>
+              </div>
+            </form>
+            <p id="checkoutStatus" class="product-note"></p>
+          </section>
+          <aside class="detail-panel card-surface product-sidebar">
+            <h3>Order summary</h3>
+            <div class="product-price" id="checkoutPrice">—</div>
+            <div class="badge-row" id="checkoutBadges"></div>
+            <div class="detail-meta-list">
+              <div class="detail-meta-item"><strong>From year</strong><span id="fromYearMeta">—</span></div>
+              <div class="detail-meta-item"><strong>To year</strong><span id="toYearMeta">—</span></div>
+              <div class="detail-meta-item"><strong>Included files</strong><span id="filesMeta">—</span></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© StudyHub</span>
+      <span>Checkout scaffold</span>
+    </div>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="checkout.js"></script>
+</body>
+</html>
