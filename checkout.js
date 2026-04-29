@@ -1,4 +1,5 @@
 function getConfig() { return window.STUDYHUB_CONFIG || {}; }
+
 async function fetchCatalog() {
   const cfg = getConfig();
   const urls = [];
@@ -17,6 +18,7 @@ async function fetchCatalog() {
   }
   throw new Error(errors.join(' | ') || 'Catalog unavailable');
 }
+
 function normalized(item) {
   return {
     sku: String(item.SKU ?? item.sku ?? ''),
@@ -31,9 +33,11 @@ function normalized(item) {
     priceCents: Number(item.Price_Cents ?? item.price_cents ?? item.priceCents ?? 0)
   };
 }
+
 function moneyZar(cents) {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format((Number(cents || 0)) / 100);
 }
+
 function buildAndSubmitPayFastForm(url, payload) {
   const form = document.createElement('form');
   form.method = 'POST';
@@ -49,6 +53,7 @@ function buildAndSubmitPayFastForm(url, payload) {
   document.body.appendChild(form);
   form.submit();
 }
+
 const sku = new URL(window.location.href).searchParams.get('sku') || '';
 const els = {
   title: document.getElementById('checkoutTitle'),
@@ -63,6 +68,7 @@ const els = {
   status: document.getElementById('checkoutStatus'),
   summaryTitle: document.getElementById('summaryTitle')
 };
+
 async function loadCheckout() {
   if (!sku) {
     els.title.textContent = 'Missing package';
@@ -91,6 +97,7 @@ async function loadCheckout() {
     els.intro.textContent = 'The package could not be loaded.';
   }
 }
+
 if (els.form) {
   els.form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -101,36 +108,49 @@ if (els.form) {
       els.status.className = 'inline-status error';
       return;
     }
+
     const formData = Object.fromEntries(new FormData(els.form).entries());
     const submitBtn = els.form.querySelector('button[type="submit"]');
-    const payload = {
+    const payload = new URLSearchParams({
       action: 'createCheckout',
       sku,
       customer_name: formData.customer_name || '',
       customer_email: formData.customer_email || '',
       customer_phone: formData.customer_phone || '',
       notes: formData.notes || ''
-    };
+    });
+
     if (submitBtn) submitBtn.disabled = true;
     els.status.textContent = 'Creating your PayFast checkout…';
     els.status.className = 'inline-status warning';
+
     try {
       const res = await fetch(cfg.apiBaseUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        },
+        body: payload.toString()
       });
-      const out = await res.json();
+      const text = await res.text();
+      let out = {};
+      try { out = JSON.parse(text); } catch (parseErr) {
+        throw new Error(text || 'Unexpected backend response');
+      }
       if (!res.ok || !out.ok) throw new Error(out.error || 'Could not create the order');
       els.status.textContent = 'Redirecting to PayFast…';
       els.status.className = 'inline-status notice';
       buildAndSubmitPayFastForm(out.payfast_url, out.payfast_payload);
     } catch (err) {
       console.error(err);
-      els.status.textContent = err.message || 'Could not start PayFast checkout.';
+      const msg = (err && err.message) ? err.message : 'Could not start PayFast checkout.';
+      els.status.textContent = msg === 'Failed to fetch'
+        ? 'Network or CORS error while contacting the backend. This hotfix uses a form-encoded POST to avoid Apps Script JSON preflight issues. If you still see this, the Web App deployment/permissions must be checked.'
+        : msg;
       els.status.className = 'inline-status error';
       if (submitBtn) submitBtn.disabled = false;
     }
   });
 }
+
 loadCheckout();
