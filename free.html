@@ -1,30 +1,145 @@
-<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Free Study Tools | StudyHub</title><link rel='stylesheet' href='styles.css'>
-  <meta name="description" content="Download free study timetable templates, exam tips and sample paper packs for Grade 8–12 learners." />
-  <meta name="robots" content="index,follow,max-image-preview:large" />
-  <link rel="canonical" href="https://examtestpaper.co.za/free.html" />
-  <meta name="theme-color" content="#2F76FF" />
-  <meta property="og:locale" content="en_ZA" />
-  <meta property="og:site_name" content="StudyHub | examtestpaper.co.za" />
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Free Study Tools | StudyHub" />
-  <meta property="og:description" content="Download free study timetable templates, exam tips and sample paper packs for Grade 8–12 learners." />
-  <meta property="og:url" content="https://examtestpaper.co.za/free.html" />
-  <meta property="og:image" content="https://examtestpaper.co.za/assets/img/hero-study.jpg" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Free Study Tools | StudyHub" />
-  <meta name="twitter:description" content="Download free study timetable templates, exam tips and sample paper packs for Grade 8–12 learners." />
-  <meta name="twitter:image" content="https://examtestpaper.co.za/assets/img/hero-study.jpg" />
 
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "Free Study Tools | StudyHub",
-    "description": "Download free study timetable templates, exam tips and sample paper packs for Grade 8–12 learners.",
-    "url": "https://examtestpaper.co.za/free.html",
-    "isPartOf": {"@type": "WebSite", "name": "StudyHub | examtestpaper.co.za", "url": "https://examtestpaper.co.za/"},
-    "publisher": {"@type": "Organization", "name": "StudyHub", "url": "https://examtestpaper.co.za/", "logo": {"@type": "ImageObject", "url": "https://examtestpaper.co.za/assets/img/studylogo.png"}}
+window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || {
+  liveCatalogUrl: '',
+  fallbackCatalogUrl: 'data/catalog.sample.json',
+  apiBaseUrl: '',
+  contactMode: 'placeholder'
+};
+
+async function fetchStudyHubCatalog() {
+  const tryUrls = [];
+  if (window.STUDYHUB_CONFIG.liveCatalogUrl) tryUrls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
+  tryUrls.push(window.STUDYHUB_CONFIG.fallbackCatalogUrl);
+  const errors = [];
+  for (const url of tryUrls) {
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const payload = await res.json();
+      return { payload, source: url, errors };
+    } catch (err) {
+      errors.push(`${url}: ${err.message}`);
+    }
   }
-  </script>
+  throw new Error(errors.join('\n'));
+}
 
-</head><body><header class='site-header'><div class='container nav'><a class='brand' href='index.html#top' aria-label='StudyHub home'><img class='brand-logo' src='assets/img/studylogo.png' alt='StudyHub logo'></a><nav><a href='index.html#packages'>Bundles</a><a href='index.html#free'>Free</a><a href='index.html#contact'>Contact</a></nav></div></header><main class='detail-main'><section class='section'><div class='container'><div class='section-head'><span class='eyebrow'>Free</span><h2>Free study tools</h2><p>No signup required.</p></div><div class='cards three-up'><article class='card-surface'><span class='card-tag'>Free</span><h3>Study timetable template</h3><p>Plan your week.</p><a class='btn btn-secondary' href='free/study-timetable.pdf'>Download PDF</a></article><article class='card-surface'><span class='card-tag'>Free</span><h3>Exam tips & techniques</h3><p>Improve your exam approach.</p><a class='btn btn-secondary' href='free/exam-tips.pdf'>Download PDF</a></article><article class='card-surface'><span class='card-tag'>Free</span><h3>Sample paper + memo</h3><p>Preview quality.</p><a class='btn btn-secondary' href='free/sample-paper.zip'>Download ZIP</a></article></div></div></section></main></body></html>
+function moneyZar(item) {
+  const cents = Number(item.Price_Cents || item.price_cents || 0);
+  if (!cents) return 'Price not set';
+  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(cents / 100);
+}
+
+function buyPlaceholder(sku) {
+  const target = `checkout.html?sku=${encodeURIComponent(sku)}`;
+  window.location.href = target;
+}
+
+function downloadPlaceholder(sku) {
+  alert(`Download placeholder for ${sku}. Connect final delivery/download logic here later.`);
+}
+
+const params = new URL(window.location.href).searchParams;
+const sku = params.get('sku') || '';
+const cartMode = params.get('cart') === '1';
+const cartSkus = (window.StudyHubCart && StudyHubCart.load) ? StudyHubCart.load() : [];
+
+const titleEl = document.getElementById('checkoutTitle');
+const introEl = document.getElementById('checkoutIntro');
+const skuField = document.getElementById('skuField');
+const priceEl = document.getElementById('checkoutPrice');
+const badgesEl = document.getElementById('checkoutBadges');
+const fromYearMeta = document.getElementById('fromYearMeta');
+const toYearMeta = document.getElementById('toYearMeta');
+const filesMeta = document.getElementById('filesMeta');
+const checkoutForm = document.getElementById('checkoutForm');
+const checkoutStatus = document.getElementById('checkoutStatus');
+const payLaterBtn = document.getElementById('payLaterBtn');
+let currentItem = null;
+
+async function loadCheckout() {
+  if (!sku && !cartMode) {
+    titleEl.textContent = 'Missing package';
+    introEl.textContent = 'Open checkout with ?sku=YOUR_SKU';
+    return;
+  }
+  skuField.value = sku || (cartMode ? cartSkus.join(', ') : '');
+  try {
+    const { payload } = await fetchStudyHubCatalog();
+    const items = payload.items || payload.packages || [];
+    if (cartMode) {
+      titleEl.textContent = 'Checkout — Basket';
+      introEl.textContent = 'You are checking out multiple bundles in one payment.';
+      const selected = cartSkus.map(function(s){ return items.find(function(v){ return String(v.SKU || v.sku || '') === s; }); }).filter(Boolean);
+      const totalCents = selected.reduce(function(sum, it){ return sum + Number(it.Price_Cents || it.price_cents || 0); }, 0);
+      currentItem = { Price_Cents: totalCents, Included_File_Count: selected.reduce(function(sum, it){ return sum + Number(it.Included_File_Count || it.included_file_count || 0); }, 0) };
+      priceEl.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(totalCents/100);
+      badgesEl.innerHTML = '<span class="badge">' + selected.length + ' bundles</span><span class="badge">One payment</span>';
+      fromYearMeta.textContent = 2022;
+      toYearMeta.textContent = 'Onward';
+      filesMeta.textContent = currentItem.Included_File_Count || 0;
+      return;
+    }
+    currentItem = items.find(v => String(v.SKU || v.sku || '') === sku);
+    if (!currentItem) {
+      titleEl.textContent = 'Package not found';
+      introEl.textContent = `No package with SKU ${sku} was found.`;
+      return;
+    }
+    titleEl.textContent = `Checkout — ${sku}`;
+    introEl.textContent = 'This checkout captures an order and is ready for final payment wiring later.';
+    priceEl.textContent = moneyZar(currentItem);
+    badgesEl.innerHTML = `<span class="badge">${currentItem.Subject_Name || 'ALL'}</span><span class="badge">${currentItem.Province_Filter || 'ALL'}</span>`;
+    fromYearMeta.textContent = currentItem.Coverage_From_Year || 2022;
+    toYearMeta.textContent = currentItem.Coverage_To_Year || 'Onward';
+    filesMeta.textContent = currentItem.Included_File_Count || 0;
+  } catch (err) {
+    titleEl.textContent = 'Catalog unavailable';
+    introEl.textContent = 'The package could not be loaded.';
+  }
+}
+
+if (payLaterBtn) {
+  payLaterBtn.addEventListener('click', () => alert('Pay-later placeholder. Connect your final payment provider later.'));
+}
+
+if (checkoutForm) {
+  checkoutForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(checkoutForm).entries());
+    const payload = cartMode ? { action: 'createCheckout', skus: cartSkus.join(','), amount_cents: currentItem ? Number(currentItem.Price_Cents || 0) : 0, ...data } : { action: 'createCheckout', sku: sku, amount_cents: currentItem ? Number(currentItem.Price_Cents || 0) : 0, ...data };
+    if (!window.STUDYHUB_CONFIG.apiBaseUrl) {
+      const fakeId = 'ORD-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+      window.location.href = `payment-success.html?order=${encodeURIComponent(fakeId)}`;
+      return;
+    }
+    try {
+      const res = await fetch(window.STUDYHUB_CONFIG.apiBaseUrl, { method: 'POST', body: new URLSearchParams(Object.entries(payload).map(function(kv){ return [kv[0], kv[1]==null?'':String(kv[1])]; })) });
+      if (!res.ok) throw new Error('Order request failed');
+      const out = await res.json();
+      const orderId = out.order_id || out.Order_ID || out.orderId || 'ORDER';
+      if (out.payfast_url && out.payfast_payload) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = out.payfast_url;
+        Object.entries(out.payfast_payload).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = value == null ? '' : String(value);
+          form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+        if (cartMode && window.StudyHubCart) { try { StudyHubCart.clear(); } catch(e){} }
+        return;
+      }
+      window.location.href = `payment-success.html?order=${encodeURIComponent(orderId)}`;
+    } catch (err) {
+      checkoutStatus.textContent = 'Order endpoint is not active yet. Using placeholder flow is recommended until deployment is complete.';
+      checkoutStatus.classList.add('notice');
+    }
+  });
+}
+
+loadCheckout();
