@@ -1,0 +1,12 @@
+SEO meta tags added/updated for:
+- index.html
+- free.html
+- package.html
+- checkout.html
+- payment-success.html
+- payment-cancelled.html
+- terms.html
+- privacy.html
+- refunds.html
+
+Added: description, robots, canonical, Open Graph, Twitter card, theme-color and JSON-LD WebPage schema.

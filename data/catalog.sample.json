@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-04-29T07:38:13+02:00",
+  "items": [
+    {
+      "sku": "SH-G12-MATHEMATICS-2022-2026-MB",
+      "bundle_type": "Master Bundle",
+      "title": "Grade 12 Mathematics Master Bundle",
+      "subject_or_all": "Mathematics",
+      "Province_Filter": "ALL",
+      "Coverage_From_Year": 2022,
+      "Coverage_To_Year": 2026,
+      "Included_File_Count": 48,
+      "price_cents": 19900,
+      "description": "Grade 12 Mathematics papers and memos for the available year range.",
+      "deliveryUrl": "",
+      "driveUrl": ""
+    },
+    {
+      "sku": "SH-G11-PHYSICAL-SCIENCES-2022-2026-MB",
+      "bundle_type": "Master Bundle",
+      "title": "Grade 11 Physical Sciences Master Bundle",
+      "subject_or_all": "Physical Sciences",
+      "Province_Filter": "ALL",
+      "Coverage_From_Year": 2022,
+      "Coverage_To_Year": 2026,
+      "Included_File_Count": 40,
+      "price_cents": 14900,
+      "description": "Grade 11 Physical Sciences papers and memos for the available year range.",
+      "deliveryUrl": "",
+      "driveUrl": ""
+    },
+    {
+      "sku": "SH-G10-ALL-2022-2026-UB",
+      "bundle_type": "Ultimate Bundle",
+      "title": "Grade 10 Ultimate Bundle",
+      "subject_or_all": "ALL",
+      "Province_Filter": "ALL",
+      "Coverage_From_Year": 2022,
+      "Coverage_To_Year": 2026,
+      "Included_File_Count": 96,
+      "price_cents": 24900,
+      "description": "Grade 10 multi-subject ultimate bundle with papers and memos.",
+      "deliveryUrl": "",
+      "driveUrl": ""
+    }
+  ]
+}
