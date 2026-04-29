@@ -2,60 +2,21 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>PayFast Checkout</title>
-
-  <!-- ✅ REQUIRED to allow PayFast POST -->
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self';
-                 script-src 'self';
-                 connect-src 'self' https://script.google.com;
-                 form-action https://www.payfast.co.za;">
+  <title>PayFast</title>
 </head>
 <body>
 
-<button onclick="pay()">Pay Now</button>
+<form method="POST"
+      action="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec">
 
-<script>
-async function pay() {
+  <input type="hidden" name="action" value="createCheckout">
+  <input type="hidden" name="sku" value="SH-G10-ALL-2022-2026-UB">
+  <input type="hidden" name="customer_email" value="test@example.com">
+  <input type="hidden" name="customer_name" value="Test User">
+  <input type="hidden" name="customer_phone" value="0820000000">
 
-  const res = await fetch(
-    'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'createCheckout',
-        sku: 'SH-G10-ALL-2022-2026-UB',
-        customer_email: 'test@example.com',
-        customer_name: 'Test User',
-        customer_phone: '0820000000'
-      })
-    }
-  );
-
-  const data = await res.json();
-  if (!data.ok) {
-    alert(data.error || 'Checkout failed');
-    return;
-  }
-
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = data.payfast_url;
-
-  for (const key in data.payfast_payload) {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = key;
-    input.value = data.payfast_payload[key];
-    form.appendChild(input);
-  }
-
-  document.body.appendChild(form);
-  form.submit();
-}
-</script>
+  <button type="submit">Pay Now</button>
+</form>
 
 </body>
 </html>
-``
