@@ -1,1 +1,0 @@
-Frontend hotfix v2. Overwrite the listed files on the site root. This version specifically fixes checkout.html so config.js is loaded before checkout.js.
