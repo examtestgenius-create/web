@@ -1,110 +1,142 @@
+function getConfig() { return window.STUDYHUB_CONFIG || {}; }
 
-window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || {
-  liveCatalogUrl: '',
-  fallbackCatalogUrl: 'data/catalog.sample.json',
-  apiBaseUrl: '',
-  contactMode: 'placeholder'
-};
-
-async function fetchStudyHubCatalog() {
-  const tryUrls = [];
-  if (window.STUDYHUB_CONFIG.liveCatalogUrl) tryUrls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
-  tryUrls.push(window.STUDYHUB_CONFIG.fallbackCatalogUrl);
+async function fetchCatalog() {
+  const cfg = getConfig();
+  const urls = [];
+  if (cfg.liveCatalogUrl) urls.push(cfg.liveCatalogUrl);
+  urls.push(cfg.fallbackCatalogUrl || 'data/catalog.sample.json');
   const errors = [];
-  for (const url of tryUrls) {
+  for (const url of urls) {
     try {
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const payload = await res.json();
-      return { payload, source: url, errors };
+      return Array.isArray(payload.items) ? payload.items : (payload.packages || []);
     } catch (err) {
       errors.push(`${url}: ${err.message}`);
     }
   }
-  throw new Error(errors.join('\n'));
+  throw new Error(errors.join(' | ') || 'Catalog unavailable');
 }
 
-function moneyZar(item) {
-  const cents = Number(item.Price_Cents || item.price_cents || 0);
-  if (!cents) return 'Price not set';
-  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(cents / 100);
+function normalized(item) {
+  return {
+    sku: String(item.SKU ?? item.sku ?? ''),
+    title: String(item.Title ?? item.title ?? item.SKU ?? item.sku ?? 'Package'),
+    bundleType: String(item.Bundle_Type ?? item.bundle_type ?? item.bundleType ?? 'Package'),
+    subject: String(item.Subject_Name ?? item.subject_name ?? item.subject_or_all ?? 'ALL'),
+    province: String(item.Province_Filter ?? item.province_filter ?? 'ALL'),
+    fromYear: item.Coverage_From_Year ?? item.coverage_from_year ?? item.year_or_range ?? 2022,
+    toYear: item.Coverage_To_Year ?? item.coverage_to_year ?? 'Onward',
+    count: Number(item.Included_File_Count ?? item.included_file_count ?? item.file_count ?? 0),
+    notes: String(item.Notes ?? item.notes ?? item.description ?? 'Exam papers and memos organised for fast revision.'),
+    priceCents: Number(item.Price_Cents ?? item.price_cents ?? item.priceCents ?? 0)
+  };
 }
 
-function buyPlaceholder(sku) {
-  const target = `checkout.html?sku=${encodeURIComponent(sku)}`;
-  window.location.href = target;
+function moneyZar(cents) {
+  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format((Number(cents || 0)) / 100);
 }
 
-function downloadPlaceholder(sku) {
-  alert(`Download placeholder for ${sku}. Connect final delivery/download logic here later.`);
+function buildAndSubmitPayFastForm(url, payload) {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = url;
+  form.style.display = 'none';
+  Object.entries(payload || {}).forEach(([key, value]) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = value;
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
 }
 
 const sku = new URL(window.location.href).searchParams.get('sku') || '';
-const titleEl = document.getElementById('checkoutTitle');
-const introEl = document.getElementById('checkoutIntro');
-const skuField = document.getElementById('skuField');
-const priceEl = document.getElementById('checkoutPrice');
-const badgesEl = document.getElementById('checkoutBadges');
-const fromYearMeta = document.getElementById('fromYearMeta');
-const toYearMeta = document.getElementById('toYearMeta');
-const filesMeta = document.getElementById('filesMeta');
-const checkoutForm = document.getElementById('checkoutForm');
-const checkoutStatus = document.getElementById('checkoutStatus');
-const payLaterBtn = document.getElementById('payLaterBtn');
-let currentItem = null;
+const els = {
+  title: document.getElementById('checkoutTitle'),
+  intro: document.getElementById('checkoutIntro'),
+  skuField: document.getElementById('skuField'),
+  price: document.getElementById('checkoutPrice'),
+  badges: document.getElementById('checkoutBadges'),
+  fromYear: document.getElementById('fromYearMeta'),
+  toYear: document.getElementById('toYearMeta'),
+  files: document.getElementById('filesMeta'),
+  form: document.getElementById('checkoutForm'),
+  status: document.getElementById('checkoutStatus'),
+  summaryTitle: document.getElementById('summaryTitle')
+};
 
 async function loadCheckout() {
   if (!sku) {
-    titleEl.textContent = 'Missing package';
-    introEl.textContent = 'Open checkout with ?sku=YOUR_SKU';
+    els.title.textContent = 'Missing package';
+    els.intro.textContent = 'Open checkout with ?sku=YOUR_SKU';
     return;
   }
-  skuField.value = sku;
+  els.skuField.value = sku;
   try {
-    const { payload } = await fetchStudyHubCatalog();
-    const items = payload.items || payload.packages || [];
-    currentItem = items.find(v => String(v.SKU || v.sku || '') === sku);
-    if (!currentItem) {
-      titleEl.textContent = 'Package not found';
-      introEl.textContent = `No package with SKU ${sku} was found.`;
+    const item = (await fetchCatalog()).map(normalized).find(v => v.sku === sku);
+    if (!item) {
+      els.title.textContent = 'Package not found';
+      els.intro.textContent = `No package with SKU ${sku} was found.`;
       return;
     }
-    titleEl.textContent = `Checkout — ${sku}`;
-    introEl.textContent = 'This checkout captures an order and is ready for final payment wiring later.';
-    priceEl.textContent = moneyZar(currentItem);
-    badgesEl.innerHTML = `<span class="badge">${currentItem.Subject_Name || 'ALL'}</span><span class="badge">${currentItem.Province_Filter || 'ALL'}</span>`;
-    fromYearMeta.textContent = currentItem.Coverage_From_Year || 2022;
-    toYearMeta.textContent = currentItem.Coverage_To_Year || 'Onward';
-    filesMeta.textContent = currentItem.Included_File_Count || 0;
+    els.title.textContent = `Checkout — ${item.title}`;
+    els.intro.textContent = 'Press Continue to PayFast to create the order and proceed to secure payment.';
+    if (els.summaryTitle) els.summaryTitle.textContent = item.title;
+    els.price.textContent = moneyZar(item.priceCents);
+    els.badges.innerHTML = `<span class="badge">${item.subject}</span><span class="badge">${item.bundleType}</span>`;
+    els.fromYear.textContent = item.fromYear;
+    els.toYear.textContent = item.toYear;
+    els.files.textContent = item.count;
   } catch (err) {
-    titleEl.textContent = 'Catalog unavailable';
-    introEl.textContent = 'The package could not be loaded.';
+    console.error(err);
+    els.title.textContent = 'Catalog unavailable';
+    els.intro.textContent = 'The package could not be loaded.';
   }
 }
 
-if (payLaterBtn) {
-  payLaterBtn.addEventListener('click', () => alert('Pay-later placeholder. Connect your final payment provider later.'));
-}
-
-if (checkoutForm) {
-  checkoutForm.addEventListener('submit', async (e) => {
+if (els.form) {
+  els.form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(checkoutForm).entries());
-    const payload = { action: 'create_order', sku: sku, amount_cents: currentItem ? Number(currentItem.Price_Cents || 0) : 0, ...data };
-    if (!window.STUDYHUB_CONFIG.apiBaseUrl) {
-      const fakeId = 'ORD-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-      window.location.href = `success.html?order=${encodeURIComponent(fakeId)}`;
+    const cfg = getConfig();
+    els.status.textContent = '';
+    if (!cfg.apiBaseUrl) {
+      els.status.textContent = 'Backend API URL is not configured.';
+      els.status.className = 'inline-status error';
       return;
     }
+    const formData = Object.fromEntries(new FormData(els.form).entries());
+    const submitBtn = els.form.querySelector('button[type="submit"]');
+    const payload = {
+      action: 'createCheckout',
+      sku,
+      customer_name: formData.customer_name || '',
+      customer_email: formData.customer_email || '',
+      customer_phone: formData.customer_phone || '',
+      notes: formData.notes || ''
+    };
+    if (submitBtn) submitBtn.disabled = true;
+    els.status.textContent = 'Creating your PayFast checkout…';
+    els.status.className = 'inline-status warning';
     try {
-      const res = await fetch(window.STUDYHUB_CONFIG.apiBaseUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error('Order request failed');
+      const res = await fetch(cfg.apiBaseUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
       const out = await res.json();
-      const orderId = out.order_id || out.Order_ID || out.orderId || 'ORDER';
-      window.location.href = `success.html?order=${encodeURIComponent(orderId)}`;
+      if (!res.ok || !out.ok) throw new Error(out.error || 'Could not create the order');
+      els.status.textContent = 'Redirecting to PayFast…';
+      els.status.className = 'inline-status notice';
+      buildAndSubmitPayFastForm(out.payfast_url, out.payfast_payload);
     } catch (err) {
-      checkoutStatus.textContent = 'Order endpoint is not active yet. Using placeholder flow is recommended until deployment is complete.';
-      checkoutStatus.classList.add('notice');
+      console.error(err);
+      els.status.textContent = err.message || 'Could not start PayFast checkout.';
+      els.status.className = 'inline-status error';
+      if (submitBtn) submitBtn.disabled = false;
     }
   });
 }

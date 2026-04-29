@@ -7,12 +7,26 @@ const orderRefEl = document.getElementById('orderRef');
 const params = new URL(window.location.href).searchParams;
 const orderId = params.get('order') || params.get('m_payment_id') || '';
 if (orderRefEl) orderRefEl.textContent = orderId || 'Pending';
-function setStatus(text, className = 'warning') { statusEl.textContent = text; statusEl.className = className; }
+
+function setStatus(text, className = 'warning') {
+  if (statusEl) {
+    statusEl.textContent = text;
+    statusEl.className = className;
+  }
+}
+
 async function checkOrderStatus() {
-  if (!orderId) { setStatus('No order reference was returned from payment. Please contact support with your email address.', 'error'); return; }
+  if (!orderId) {
+    setStatus('No order reference was returned from payment. Please contact support with your email address.', 'error');
+    return;
+  }
   const cfg = getConfig();
-  if (!cfg.apiBaseUrl) { setStatus('Backend API is not configured.', 'error'); return; }
-  let attempts = 0; const maxAttempts = 24;
+  if (!cfg.apiBaseUrl) {
+    setStatus('Backend API is not configured.', 'error');
+    return;
+  }
+  let attempts = 0;
+  const maxAttempts = 24;
   while (attempts < maxAttempts) {
     attempts += 1;
     try {
@@ -23,8 +37,10 @@ async function checkOrderStatus() {
         const deliveryUrl = out.delivery_url || out.deliveryUrl || '';
         const invoiceUrl = out.invoice_url || out.invoiceUrl || '';
         if (deliveryUrl) deliveryLink.href = deliveryUrl;
-        if (invoiceUrl) invoiceLink.href = invoiceUrl; else invoiceLink.closest('p')?.classList.add('hidden');
-        deliveryBlock.classList.remove('hidden'); deliveryBlock.style.display = 'block';
+        if (invoiceUrl) invoiceLink.href = invoiceUrl;
+        else invoiceLink.closest('p')?.classList.add('hidden');
+        deliveryBlock.classList.remove('hidden');
+        deliveryBlock.style.display = 'block';
         setStatus('Payment confirmed. Your bundle is ready to download.', 'notice');
         return;
       }
@@ -40,4 +56,5 @@ async function checkOrderStatus() {
   }
   setStatus('Payment is still being confirmed. Please refresh this page in a few minutes or contact support if needed.', 'warning');
 }
+
 checkOrderStatus();
