@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>PayFast Checkout</title>
+
+  <!-- ✅ REQUIRED to allow PayFast POST -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self';
+                 connect-src 'self' https://script.google.com;
+                 form-action https://www.payfast.co.za;">
 </head>
 <body>
 
@@ -12,7 +19,7 @@
 async function pay() {
 
   const res = await fetch(
-    'https://script.google.com/macros/s/AKfycbzP1FMuDC92FKnQ0T-DJrMah3b7vsO1rADn4IYq5kjXzu79C4hdu1fyo1vGhxs9K5Vy/exec',
+    'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -51,3 +58,4 @@ async function pay() {
 
 </body>
 </html>
+``
