@@ -1,0 +1,28 @@
+{
+  "zip": "/mnt/file_upload/StudyHub_GitHub_Ready_CART_FIXED.zip",
+  "size": 378973,
+  "backend_syntax_failures": [
+    {
+      "file": "payfast.gs",
+      "stderr": [
+        "/mnt/file_upload/StudyHub_release_pkg_cart_fixed/apps-script/payfast.js:324",
+        "  ].join('",
+        "         ^",
+        "",
+        "SyntaxError: Invalid or unexpected token",
+        "\u001b[90m    at wrapSafe (node:internal/modules/cjs/loader:1743:18)\u001b[39m"
+      ]
+    },
+    {
+      "file": "Code.gs",
+      "stderr": [
+        "/mnt/file_upload/StudyHub_release_pkg_cart_fixed/apps-script/Code.js:260",
+        "    'Enter an existing Drive Folder URL or ID for the top-level StudyHub root.",
+        "    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "",
+        "SyntaxError: Invalid or unexpected token",
+        "\u001b[90m    at wrapSafe (node:internal/modules/cjs/loader:1743:18)\u001b[39m"
+      ]
+    }
+  ]
+}
