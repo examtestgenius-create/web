@@ -1,0 +1,55 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5efe7"/>
+      <stop offset="100%" stop-color="#d3b894"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#eef3ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="900" fill="url(#bg)"/>
+  <g opacity="0.14" stroke="#8d6e4e">
+    <path d="M0 40H1400"/><path d="M0 110H1400"/><path d="M0 180H1400"/><path d="M0 250H1400"/><path d="M0 320H1400"/><path d="M0 390H1400"/><path d="M0 460H1400"/><path d="M0 530H1400"/><path d="M0 600H1400"/><path d="M0 670H1400"/><path d="M0 740H1400"/><path d="M0 810H1400"/>
+  </g>
+  <g transform="translate(835 120) rotate(6)">
+    <rect x="0" y="40" width="210" height="270" rx="10" fill="url(#paper)" stroke="#c9d8ff"/>
+    <text x="20" y="85" font-family="Inter,Arial" font-size="32" font-weight="800" fill="#1e2a4a">EXAM PAPER</text>
+    <path d="M20 118H180" stroke="#9db8ff" stroke-width="4"/>
+    <path d="M20 150H180" stroke="#c8d7ff" stroke-width="3"/>
+    <path d="M20 175H180" stroke="#c8d7ff" stroke-width="3"/>
+    <path d="M20 200H180" stroke="#c8d7ff" stroke-width="3"/>
+    <path d="M20 225H180" stroke="#c8d7ff" stroke-width="3"/>
+    <path d="M20 250H180" stroke="#c8d7ff" stroke-width="3"/>
+  </g>
+  <g transform="translate(1020 150) rotate(8)">
+    <rect x="0" y="0" width="210" height="270" rx="10" fill="url(#paper)" stroke="#c9d8ff"/>
+    <text x="20" y="45" font-family="Inter,Arial" font-size="32" font-weight="800" fill="#1e2a4a">MEMO</text>
+    <path d="M20 78H180" stroke="#9db8ff" stroke-width="4"/>
+    <path d="M20 110H180" stroke="#c8d7ff" stroke-width="3"/>
+    <path d="M20 135H180" stroke="#c8d7ff" stroke-width="3"/>
+    <path d="M20 160H180" stroke="#c8d7ff" stroke-width="3"/>
+    <path d="M20 185H180" stroke="#c8d7ff" stroke-width="3"/>
+    <path d="M20 210H180" stroke="#c8d7ff" stroke-width="3"/>
+    <path d="M150 230l20 20" stroke="#22aa66" stroke-width="8" stroke-linecap="round"/>
+    <path d="M170 250l28-36" stroke="#22aa66" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(1120 520)">
+    <rect width="170" height="210" rx="16" fill="#1f2937"/>
+    <rect x="18" y="18" width="134" height="38" rx="8" fill="#d1e0ff"/>
+    <g fill="#4b5563">
+      <rect x="18" y="75" width="28" height="22" rx="4"/><rect x="54" y="75" width="28" height="22" rx="4"/><rect x="90" y="75" width="28" height="22" rx="4"/><rect x="126" y="75" width="28" height="22" rx="4"/>
+      <rect x="18" y="105" width="28" height="22" rx="4"/><rect x="54" y="105" width="28" height="22" rx="4"/><rect x="90" y="105" width="28" height="22" rx="4"/><rect x="126" y="105" width="28" height="22" rx="4"/>
+      <rect x="18" y="135" width="28" height="22" rx="4"/><rect x="54" y="135" width="28" height="22" rx="4"/><rect x="90" y="135" width="28" height="22" rx="4"/><rect x="126" y="135" width="28" height="22" rx="4"/>
+    </g>
+    <rect x="90" y="165" width="64" height="28" rx="6" fill="#2F76FF"/>
+  </g>
+  <g transform="translate(980 680)">
+    <rect width="220" height="110" rx="16" fill="#fffefc"/>
+    <path d="M22 26H198" stroke="#c4c4c4"/>
+    <path d="M22 50H198" stroke="#c4c4c4"/>
+    <path d="M22 74H198" stroke="#c4c4c4"/>
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/</loc></url>
+  <url><loc>https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/index.html</loc></url>
+  <url><loc>https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/free.html</loc></url>
+  <url><loc>https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/package.html</loc></url>
+  <url><loc>https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/checkout.html</loc></url>
+  <url><loc>https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/order-created.html</loc></url>
+  <url><loc>https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/payment-success.html</loc></url>
+  <url><loc>https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/payment-cancelled.html</loc></url>
+  <url><loc>https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/terms.html</loc></url>
+  <url><loc>https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/privacy.html</loc></url>
+  <url><loc>https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO/refunds.html</loc></url>
+</urlset>
