@@ -7,16 +7,23 @@
 
   <meta name="description" content="Secure StudyHub checkout via PayFast">
 
-  <link rel="preconnect" hrefm
-  https://fonts.gstatic.com
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swapss
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
+
 <header class="site-header">
   <div class="container nav">
-    <a class="brand" href="index.html#top" aria" src="assets/img/studylogo.png" alt"l#packagesPackages</a>
-      index.html#contactContact</a>
+    <a class="brand" href="index.html#top">
+      <img class="brand-logo" src="assets/img/studylogo.png" alt="StudyHub logo">
+    </a>
+    <nav>
+      <a href="index.html#packages">Packages</a>
+      <a href="index.html#contact">Contact</a>
     </nav>
   </div>
 </header>
@@ -24,11 +31,10 @@
 <main class="detail-main">
   <section class="section">
     <div class="container">
-      <a class="back-link" href="o packages</a>
+      <a class="back-link" href="index.html#packages">← Back to packages</a>
 
       <div class="detail-layout">
 
-        <!-- LEFT -->
         <section class="detail-panel card-surface">
           <span class="eyebrow">Secure checkout</span>
           <h2 id="checkoutTitle">Loading package…</h2>
@@ -59,7 +65,7 @@
 
             <label>
               Notes (optional)
-              <textarea rows="4" name="notes" placeholder="Anything special about the order?"></textarea>
+              <textarea rows="4" name="notes"></textarea>
             </label>
 
             <div class="detail-actions">
@@ -71,7 +77,6 @@
           <p id="checkoutStatus" class="product-note"></p>
         </section>
 
-        <!-- RIGHT -->
         <aside class="detail-panel card-surface product-sidebar">
           <h3>Order summary</h3>
           <div class="product-price" id="checkoutPrice">—</div>
@@ -105,8 +110,9 @@
   </div>
 </footer>
 
-<!-- ✅ SCRIPTS – ORDER MATTERS + CACHE BUST -->
-<script src="config.js?v=2026-05-01script src="checkout.js?v=2026-05-01-2"></script>
+<!-- ✅ SCRIPT ORDER MATTERS -->
+<script src="config.js?v=2026-05-01-3"></script>
+<script src="checkout.js?v=2026-05-01-3"></script>
 
 </body>
 </html>
