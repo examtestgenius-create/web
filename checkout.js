@@ -31,23 +31,33 @@ function moneyZarFromCents(cents) {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n / 100);
 }
 
-function itemSku(item){ return String(item.sku || item.SKU || ''); }
-function itemPapers(item){
-  const v = item.paper_count ?? item.papers ?? item.file_count ?? item.Included_File_Count ?? item.included_file_count;
-  return Number(v || 0);
+// ✅ FIXED: convert file_count (paper+memo) into paper count
+function itemPapers(item) {
+  // Prefer true paper_count if backend ever provides it
+  const paperCount = item.paper_count ?? item.papers;
+  if (paperCount !== undefined && paperCount !== null && String(paperCount).trim() !== '') {
+    return Number(paperCount || 0);
+  }
+
+  // Fallback to file count; memos are ALWAYS included => 2 files per paper
+  const fileCount = item.file_count ?? item.Included_File_Count ?? item.included_file_count;
+  const n = Number(fileCount || 0);
+  return Math.round(n / 2);
 }
 
-function buildHiddenForm(actionUrl, fields){
+function buildHiddenForm(actionUrl, fields) {
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = actionUrl;
-  for (const [k,v] of Object.entries(fields)){
+
+  for (const [k, v] of Object.entries(fields)) {
     const input = document.createElement('input');
     input.type = 'hidden';
     input.name = k;
     input.value = String(v);
     form.appendChild(input);
   }
+
   document.body.appendChild(form);
   return form;
 }
@@ -67,8 +77,8 @@ const payLaterBtn = document.getElementById('payLaterBtn');
 
 let currentItem = null;
 
-async function loadCheckout(){
-  if (!sku){
+async function loadCheckout() {
+  if (!sku) {
     titleEl.textContent = 'Missing bundle';
     introEl.textContent = 'Open checkout with ?sku=YOUR_SKU';
     return;
@@ -81,14 +91,15 @@ async function loadCheckout(){
     const items = payload.items || payload.packages || [];
     currentItem = items.find(v => String(v.sku || v.SKU || '') === sku) || null;
 
-    if (!currentItem){
+    if (!currentItem) {
       titleEl.textContent = 'Bundle not found';
       introEl.textContent = `No bundle with SKU ${sku} was found.`;
       return;
     }
 
     titleEl.textContent = `Checkout — ${sku}`;
-    introEl.innerHTML = 'Secure payment via <strong>PayFast</strong>. After confirmation, you will receive a ZIP download link.';
+    introEl.innerHTML =
+      'Secure payment via <strong>PayFast</strong>. After confirmation, you will receive a ZIP download link.';
 
     priceEl.textContent = moneyZarFromCents(currentItem.price_cents || currentItem.Price_Cents);
 
@@ -102,28 +113,31 @@ async function loadCheckout(){
       year ? `<span class="badge">${year}</span>` : ''
     ].join('');
 
-    // Year meta is optional in v2
-    fromYearMeta.textContent = (String(year).match(/(20\d{2})/) || ['—'])[0];
-    toYearMeta.textContent = (String(year).match(/-(20\d{2})/) || ['—'])[0].replace('-', '') || '—';
+    // Optional year meta (if the year range exists as 2022-2026 etc.)
+    const from = (String(year).match(/(20\d{2})/) || ['—'])[0];
+    const to = (String(year).match(/-(20\d{2})/) || ['—'])[0].replace('-', '') || '—';
+    fromYearMeta.textContent = from;
+    toYearMeta.textContent = to;
 
+    // ✅ show PAPERS (not file count)
     filesMeta.textContent = `${itemPapers(currentItem)} papers (memo included)`;
-
-  } catch (err){
+  } catch (err) {
     titleEl.textContent = 'Catalog unavailable';
     introEl.textContent = 'The bundle could not be loaded.';
     console.error(err);
   }
 }
 
-if (payLaterBtn){
+// Hide pay-later for go-live
+if (payLaterBtn) {
   payLaterBtn.style.display = 'none';
 }
 
-if (checkoutForm){
-  checkoutForm.addEventListener('submit', async (e)=>{
+if (checkoutForm) {
+  checkoutForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    if (!window.STUDYHUB_CONFIG.apiBaseUrl){
+    if (!window.STUDYHUB_CONFIG.apiBaseUrl) {
       checkoutStatus.textContent = 'Backend not configured. Set webappUrl in config.js.';
       checkoutStatus.classList.add('status-error');
       return;
@@ -134,7 +148,7 @@ if (checkoutForm){
     const email = String(data.customer_email || '').trim();
     const phone = String(data.customer_phone || '').trim();
 
-    if (!email){
+    if (!email) {
       checkoutStatus.textContent = 'Please enter your email.';
       return;
     }
@@ -147,6 +161,7 @@ if (checkoutForm){
     checkoutStatus.classList.remove('status-error');
 
     try {
+      // Calls Apps Script backend createCheckout (PayFast)
       const res = await fetch(window.STUDYHUB_CONFIG.apiBaseUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -166,16 +181,15 @@ if (checkoutForm){
       const out = await res.json();
       if (!out.ok) throw new Error(out.error || 'Checkout failed');
 
-      // Build and submit PayFast form
+      // Submit PayFast form
       const form = buildHiddenForm(out.payfast_url, out.payfast_payload);
       form.submit();
-
-    } catch (err){
+    } catch (err) {
       console.error(err);
-      checkoutStatus.textContent = 'Could not start PayFast checkout. Please try again or contact support.';
+      checkoutStatus.textContent =
+        'Could not start PayFast checkout. Please try again or contact support.';
       checkoutStatus.classList.add('status-error');
     }
-
   });
 }
 
