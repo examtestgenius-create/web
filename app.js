@@ -35,10 +35,19 @@ function itemType(item){ return String(item.bundle_type || item.Bundle_Type || i
 function itemGrade(item){ return String(item.grade || item.Grade || '').trim(); }
 function itemSubject(item){ return String(item.subject_or_all || item.Subject_Name || 'ALL'); }
 function itemYear(item){ return String(item.year_or_range || item.Year || ''); }
+
+// ✅ FIXED: convert file_count (paper+memo) into paper count
 function itemPapers(item){
-  // IMPORTANT: we show PAPERS (paper+memo counts as 1)
-  const v = item.paper_count ?? item.papers ?? item.file_count ?? item.Included_File_Count ?? item.included_file_count;
-  return Number(v || 0);
+  // Prefer a true paper_count if backend ever provides it
+  const paperCount = item.paper_count ?? item.papers;
+  if (paperCount !== undefined && paperCount !== null && String(paperCount).trim() !== '') {
+    return Number(paperCount || 0);
+  }
+
+  // Fallback to file count; memos are ALWAYS included => 2 files per paper
+  const fileCount = item.file_count ?? item.Included_File_Count ?? item.included_file_count;
+  const n = Number(fileCount || 0);
+  return Math.round(n / 2);
 }
 
 function buyNow(sku){
@@ -57,7 +66,10 @@ const searchInput = document.getElementById('searchInput');
 
 let catalogItems = [];
 
-function uniqueSorted(list){ return [...new Set((list||[]).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b))); }
+function uniqueSorted(list){
+  return [...new Set((list || []).filter(Boolean))]
+    .sort((a, b) => String(a).localeCompare(String(b)));
+}
 
 function formatCard(item, featured=false){
   const sku = itemSku(item);
@@ -95,33 +107,47 @@ function formatCard(item, featured=false){
 }
 
 function populateFilters(items){
-  const types = uniqueSorted(items.map(i=>itemType(i)));
-  const subjects = uniqueSorted(items.map(i=>itemSubject(i)));
-  // Province filtering is not guaranteed in v2 catalog. Keep dropdown but default to ALL.
-  const provinces = uniqueSorted(items.map(i=>i.province || i.province_filter || i.Province_Filter || 'ALL'));
+  const types = uniqueSorted(items.map(i => itemType(i)));
+  const subjects = uniqueSorted(items.map(i => itemSubject(i)));
+  // Province may not exist in v2 catalog. Keep dropdown but default to ALL.
+  const provinces = uniqueSorted(items.map(i => i.province || i.province_filter || i.Province_Filter || 'ALL'));
 
-  if (filterType) filterType.innerHTML = '<option value="ALL">All types</option>' + types.map(v=>`<option value="${v}">${v}</option>`).join('');
-  if (filterSubject) filterSubject.innerHTML = '<option value="ALL">All subjects</option>' + subjects.map(v=>`<option value="${v}">${v}</option>`).join('');
-  if (filterProvince) filterProvince.innerHTML = '<option value="ALL">All provinces</option>' + provinces.map(v=>`<option value="${v}">${v}</option>`).join('');
+  if (filterType) {
+    filterType.innerHTML =
+      '<option value="ALL">All types</option>' +
+      types.map(v => `<option value="${v}">${v}</option>`).join('');
+  }
+
+  if (filterSubject) {
+    filterSubject.innerHTML =
+      '<option value="ALL">All subjects</option>' +
+      subjects.map(v => `<option value="${v}">${v}</option>`).join('');
+  }
+
+  if (filterProvince) {
+    filterProvince.innerHTML =
+      '<option value="ALL">All provinces</option>' +
+      provinces.map(v => `<option value="${v}">${v}</option>`).join('');
+  }
 }
 
 function sortItems(items){
   const mode = sortBy ? sortBy.value : 'featured';
   const copy = [...items];
 
-  if (mode === 'priceAsc') copy.sort((a,b)=>Number(a.price_cents||0)-Number(b.price_cents||0));
-  else if (mode === 'priceDesc') copy.sort((a,b)=>Number(b.price_cents||0)-Number(a.price_cents||0));
-  else if (mode === 'filesDesc') copy.sort((a,b)=>itemPapers(b)-itemPapers(a)); // UI label is 'Papers'
-  else if (mode === 'nameAsc') copy.sort((a,b)=>itemSku(a).localeCompare(itemSku(b)));
-  else copy.sort((a,b)=>itemPapers(b)-itemPapers(a));
+  if (mode === 'priceAsc') copy.sort((a,b) => Number(a.price_cents || 0) - Number(b.price_cents || 0));
+  else if (mode === 'priceDesc') copy.sort((a,b) => Number(b.price_cents || 0) - Number(a.price_cents || 0));
+  else if (mode === 'filesDesc') copy.sort((a,b) => itemPapers(b) - itemPapers(a)); // label is Papers
+  else if (mode === 'nameAsc') copy.sort((a,b) => itemSku(a).localeCompare(itemSku(b)));
+  else copy.sort((a,b) => itemPapers(b) - itemPapers(a));
 
   return copy;
 }
 
 function renderFeatured(items){
   if (!featuredRoot) return;
-  const featured = [...items].sort((a,b)=>itemPapers(b)-itemPapers(a)).slice(0,3);
-  featuredRoot.innerHTML = featured.map(i=>formatCard(i,true)).join('');
+  const featured = [...items].sort((a,b) => itemPapers(b) - itemPapers(a)).slice(0, 3);
+  featuredRoot.innerHTML = featured.map(i => formatCard(i, true)).join('');
 }
 
 function applyFilters(){
@@ -130,12 +156,18 @@ function applyFilters(){
   const subject = filterSubject ? filterSubject.value : 'ALL';
   const term = (searchInput ? searchInput.value : '').trim().toLowerCase();
 
-  let filtered = catalogItems.filter(item=>{
+  let filtered = catalogItems.filter(item => {
     const itemTypeVal = itemType(item);
     const itemProvinceVal = String(item.province || item.province_filter || item.Province_Filter || 'ALL');
     const itemSubjectVal = itemSubject(item);
 
-    const textBlob = [itemSku(item), itemSubjectVal, itemProvinceVal, itemTypeVal, item.description||''].join(' ').toLowerCase();
+    const textBlob = [
+      itemSku(item),
+      itemSubjectVal,
+      itemProvinceVal,
+      itemTypeVal,
+      item.description || ''
+    ].join(' ').toLowerCase();
 
     if (type !== 'ALL' && itemTypeVal !== type) return false;
     if (province !== 'ALL' && itemProvinceVal !== province) return false;
@@ -148,7 +180,7 @@ function applyFilters(){
 
   if (cardsRoot) {
     cardsRoot.innerHTML = filtered.length
-      ? filtered.map(i=>formatCard(i,false)).join('')
+      ? filtered.map(i => formatCard(i, false)).join('')
       : '<article class="card-surface"><h3>No matches</h3><p>Try a different search or filter.</p></article>';
   }
 }
@@ -174,27 +206,29 @@ async function loadCatalog(){
       metaEl.textContent = 'Catalog could not be loaded.';
       metaEl.classList.add('status-error');
     }
-    if (cardsRoot) cardsRoot.innerHTML = '<article class="card-surface"><h3>Catalog unavailable</h3><p>Check your live catalog URL in config.js.</p></article>';
+    if (cardsRoot) {
+      cardsRoot.innerHTML = '<article class="card-surface"><h3>Catalog unavailable</h3><p>Check your live catalog URL in config.js.</p></article>';
+    }
     if (featuredRoot) featuredRoot.innerHTML = '';
     console.error(err);
   }
 }
 
-[filterType, filterProvince, filterSubject, sortBy].forEach(el=>el && el.addEventListener('change', applyFilters));
+[filterType, filterProvince, filterSubject, sortBy].forEach(el => el && el.addEventListener('change', applyFilters));
 if (searchInput) searchInput.addEventListener('input', applyFilters);
-if (clearFilters) clearFilters.addEventListener('click', ()=>{
-  if (filterType) filterType.value='ALL';
-  if (filterProvince) filterProvince.value='ALL';
-  if (filterSubject) filterSubject.value='ALL';
-  if (sortBy) sortBy.value='featured';
-  if (searchInput) searchInput.value='';
+if (clearFilters) clearFilters.addEventListener('click', () => {
+  if (filterType) filterType.value = 'ALL';
+  if (filterProvince) filterProvince.value = 'ALL';
+  if (filterSubject) filterSubject.value = 'ALL';
+  if (sortBy) sortBy.value = 'featured';
+  if (searchInput) searchInput.value = '';
   applyFilters();
 });
 
 // Quick-pick buttons
 try {
-  document.querySelectorAll('[data-search]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
+  document.querySelectorAll('[data-search]').forEach(btn => {
+    btn.addEventListener('click', () => {
       const term = btn.getAttribute('data-search') || '';
       if (searchInput){
         searchInput.value = term;
