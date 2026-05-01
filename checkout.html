@@ -1,73 +1,119 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>StudyHub Checkout</title>
-  <meta name="description" content="StudyHub checkout scaffold" />
+
+  <meta name="description" content="Secure StudyHub checkout via PayFast">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+
+  <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <header class="site-header">
-    <div class="container nav">
-      <a class="brand" href="index.html#top" aria-label="StudyHub home">
-        <img class="brand-logo" src="assets/img/studylogo.png" alt="StudyHub logo" />
-      </a>
-      <nav>
-        <a href="index.html#packages">Packages</a>
-        <a href="index.html#contact">Contact</a>
-      </nav>
-    </div>
-  </header>
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="index.html#top" aria-label="StudyHub home">
+      <img class="brand-logo" src="assets/img/studylogo.png" alt="StudyHub logo">
+    </a>
+    <nav>
+      <a href="index.html#packages">Packages</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+  </div>
+</header>
 
-  <main class="detail-main">
-    <section class="section">
-      <div class="container">
-        <a class="back-link" href="index.html#packages">← Back to packages</a>
-        <div class="detail-layout">
-          <section class="detail-panel card-surface">
-            <span class="eyebrow">Checkout scaffold</span>
-            <h2 id="checkoutTitle">Loading package…</h2>
-            <p id="checkoutIntro">This page captures order details and is ready for final payment wiring later.</p>
-            <form id="checkoutForm" class="checkout-form">
-              <label>Package SKU<input type="text" id="skuField" name="sku" readonly /></label>
-              <label>Name<input type="text" name="customer_name" required /></label>
-              <label>Email<input type="email" name="customer_email" required /></label>
-              <label>Phone (optional)<input type="text" name="customer_phone" /></label>
-              <label>Notes (optional)<textarea rows="4" name="notes" placeholder="Anything special about the order?"></textarea></label>
-              <div class="detail-actions">
-                <button class="btn btn-primary" type="submit">Create order</button>
-                <button class="btn btn-ghost" type="button" id="payLaterBtn">Pay later placeholder</button>
-              </div>
-            </form>
-            <p id="checkoutStatus" class="product-note"></p>
-          </section>
-          <aside class="detail-panel card-surface product-sidebar">
-            <h3>Order summary</h3>
-            <div class="product-price" id="checkoutPrice">—</div>
-            <div class="badge-row" id="checkoutBadges"></div>
-            <div class="detail-meta-list">
-              <div class="detail-meta-item"><strong>From year</strong><span id="fromYearMeta">—</span></div>
-              <div class="detail-meta-item"><strong>To year</strong><span id="toYearMeta">—</span></div>
-              <div class="detail-meta-item"><strong>Included files</strong><span id="filesMeta">—</span></div>
+<main class="detail-main">
+  <section class="section">
+    <div class="container">
+      <a class="back-link" href="index.html#packages">← Back to packages</a>
+
+      <div class="detail-layout">
+
+        <!-- LEFT -->
+        <section class="detail-panel card-surface">
+          <span class="eyebrow">Secure checkout</span>
+          <h2 id="checkoutTitle">Loading package…</h2>
+          <p id="checkoutIntro">
+            Secure payment via <strong>PayFast</strong>. Instant download after confirmation.
+          </p>
+
+          <form id="checkoutForm" class="checkout-form" novalidate>
+            <label>
+              Package SKU
+              <input type="text" id="skuField" name="sku" readonly>
+            </label>
+
+            <label>
+              Name
+              <input type="text" name="customer_name" required>
+            </label>
+
+            <label>
+              Email
+              <input type="email" name="customer_email" required>
+            </label>
+
+            <label>
+              Phone (optional)
+              <input type="text" name="customer_phone">
+            </label>
+
+            <label>
+              Notes (optional)
+              <textarea rows="4" name="notes" placeholder="Anything special about the order?"></textarea>
+            </label>
+
+            <div class="detail-actions">
+              <button class="btn btn-primary" type="submit">Create order</button>
+              <button class="btn btn-ghost" type="button" id="payLaterBtn">Pay later</button>
             </div>
-          </aside>
-        </div>
+          </form>
+
+          <p id="checkoutStatus" class="product-note"></p>
+        </section>
+
+        <!-- RIGHT -->
+        <aside class="detail-panel card-surface product-sidebar">
+          <h3>Order summary</h3>
+          <div class="product-price" id="checkoutPrice">—</div>
+          <div class="badge-row" id="checkoutBadges"></div>
+
+          <div class="detail-meta-list">
+            <div class="detail-meta-item">
+              <strong>From year</strong>
+              <span id="fromYearMeta">—</span>
+            </div>
+            <div class="detail-meta-item">
+              <strong>To year</strong>
+              <span id="toYearMeta">—</span>
+            </div>
+            <div class="detail-meta-item">
+              <strong>Included files</strong>
+              <span id="filesMeta">—</span>
+            </div>
+          </div>
+        </aside>
+
       </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container footer-row">
-      <span>© StudyHub</span>
-      <span>Checkout scaffold</span>
     </div>
-  </footer>
+  </section>
+</main>
 
-  <script src="config.js"></script>
- <script src="checkout.js"></script>
+<footer class="site-footer">
+  <div class="container footer-row">
+    <span>© StudyHub</span>
+    <span>Secure checkout</span>
+  </div>
+</footer>
+
+<!-- ✅ SCRIPTS – ORDER MATTERS -->
+<script src="config.js"></script>
+<script src="checkout.js"></script>
+
 </body>
 </html>
