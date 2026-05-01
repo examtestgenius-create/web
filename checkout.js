@@ -1,82 +1,73 @@
-// StudyHub checkout.js (Go-Live PayFast)
+// StudyHub checkout.js (PRODUCTION SAFE – NO CORS)
+// Uses normal HTML form POST to Apps Script which returns
+// an HTML auto-submit page for PayFast.
+
 window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || {
   liveCatalogUrl: '',
   fallbackCatalogUrl: 'data/catalog.sample.json',
   apiBaseUrl: ''
 };
 
+/* ===========================
+   Helpers
+=========================== */
 async function fetchStudyHubCatalog() {
-  const tryUrls = [];
-  if (window.STUDYHUB_CONFIG.liveCatalogUrl) tryUrls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
-  tryUrls.push(window.STUDYHUB_CONFIG.fallbackCatalogUrl);
-  const errors = [];
+  const urls = [];
+  if (window.STUDYHUB_CONFIG.liveCatalogUrl) {
+    urls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
+  }
+  urls.push(window.STUDYHUB_CONFIG.fallbackCatalogUrl);
 
-  for (const url of tryUrls) {
+  for (const url of urls) {
     try {
       const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const payload = await res.json();
-      return { payload, source: url, errors };
-    } catch (err) {
-      errors.push(`${url}: ${err.message}`);
-    }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } catch (e) {}
   }
-
-  throw new Error(errors.join('\n'));
+  throw new Error('Catalog unavailable');
 }
 
 function moneyZarFromCents(cents) {
   const n = Number(cents || 0);
   if (!n) return 'Price not set';
-  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n / 100);
+  return new Intl.NumberFormat('en-ZA', {
+    style: 'currency',
+    currency: 'ZAR'
+  }).format(n / 100);
 }
 
-// ✅ FIXED: convert file_count (paper+memo) into paper count
+// ✅ Paper count fix (paper + memo = 1 paper)
 function itemPapers(item) {
-  // Prefer true paper_count if backend ever provides it
-  const paperCount = item.paper_count ?? item.papers;
-  if (paperCount !== undefined && paperCount !== null && String(paperCount).trim() !== '') {
-    return Number(paperCount || 0);
+  if (item.paper_count !== undefined && item.paper_count !== null) {
+    return Number(item.paper_count || 0);
   }
-
-  // Fallback to file count; memos are ALWAYS included => 2 files per paper
-  const fileCount = item.file_count ?? item.Included_File_Count ?? item.included_file_count;
-  const n = Number(fileCount || 0);
-  return Math.round(n / 2);
+  const files = Number(item.file_count || item.Included_File_Count || 0);
+  return Math.round(files / 2); // memo always included
 }
 
-function buildHiddenForm(actionUrl, fields) {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = actionUrl;
-
-  for (const [k, v] of Object.entries(fields)) {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = k;
-    input.value = String(v);
-    form.appendChild(input);
-  }
-
-  document.body.appendChild(form);
-  return form;
-}
-
+/* ===========================
+   Page Elements
+=========================== */
 const sku = new URL(window.location.href).searchParams.get('sku') || '';
+
 const titleEl = document.getElementById('checkoutTitle');
 const introEl = document.getElementById('checkoutIntro');
 const skuField = document.getElementById('skuField');
 const priceEl = document.getElementById('checkoutPrice');
 const badgesEl = document.getElementById('checkoutBadges');
+
 const fromYearMeta = document.getElementById('fromYearMeta');
 const toYearMeta = document.getElementById('toYearMeta');
-const filesMeta = document.getElementById('filesMeta');
+const papersMeta = document.getElementById('filesMeta');
+
 const checkoutForm = document.getElementById('checkoutForm');
 const checkoutStatus = document.getElementById('checkoutStatus');
 const payLaterBtn = document.getElementById('payLaterBtn');
 
-let currentItem = null;
-
+/* ===========================
+   Load checkout data
+=========================== */
 async function loadCheckout() {
   if (!sku) {
     titleEl.textContent = 'Missing bundle';
@@ -87,25 +78,25 @@ async function loadCheckout() {
   skuField.value = sku;
 
   try {
-    const { payload } = await fetchStudyHubCatalog();
-    const items = payload.items || payload.packages || [];
-    currentItem = items.find(v => String(v.sku || v.SKU || '') === sku) || null;
+    const catalog = await fetchStudyHubCatalog();
+    const items = catalog.items || catalog.packages || [];
+    const item = items.find(i => String(i.sku || i.SKU) === sku);
 
-    if (!currentItem) {
+    if (!item) {
       titleEl.textContent = 'Bundle not found';
-      introEl.textContent = `No bundle with SKU ${sku} was found.`;
+      introEl.textContent = `No bundle with SKU ${sku}`;
       return;
     }
 
     titleEl.textContent = `Checkout — ${sku}`;
     introEl.innerHTML =
-      'Secure payment via <strong>PayFast</strong>. After confirmation, you will receive a ZIP download link.';
+      'Secure payment via <strong>PayFast</strong>. After confirmation you will receive an instant ZIP download link.';
 
-    priceEl.textContent = moneyZarFromCents(currentItem.price_cents || currentItem.Price_Cents);
+    priceEl.textContent = moneyZarFromCents(item.price_cents || item.Price_Cents);
 
-    const grade = currentItem.grade || currentItem.Grade || '';
-    const subject = currentItem.subject_or_all || currentItem.Subject_Name || 'ALL';
-    const year = currentItem.year_or_range || '';
+    const grade = item.grade || '';
+    const subject = item.subject_or_all || 'ALL';
+    const year = item.year_or_range || '';
 
     badgesEl.innerHTML = [
       grade ? `<span class="badge">Grade ${grade}</span>` : '',
@@ -113,43 +104,43 @@ async function loadCheckout() {
       year ? `<span class="badge">${year}</span>` : ''
     ].join('');
 
-    // Optional year meta (if the year range exists as 2022-2026 etc.)
-    const from = (String(year).match(/(20\d{2})/) || ['—'])[0];
-    const to = (String(year).match(/-(20\d{2})/) || ['—'])[0].replace('-', '') || '—';
-    fromYearMeta.textContent = from;
-    toYearMeta.textContent = to;
+    const years = String(year).match(/20\d{2}/g) || [];
+    fromYearMeta.textContent = years[0] || '—';
+    toYearMeta.textContent = years[1] || years[0] || '—';
 
-    // ✅ show PAPERS (not file count)
-    filesMeta.textContent = `${itemPapers(currentItem)} papers (memo included)`;
+    papersMeta.textContent = `${itemPapers(item)} papers (memo included)`;
   } catch (err) {
-    titleEl.textContent = 'Catalog unavailable';
-    introEl.textContent = 'The bundle could not be loaded.';
     console.error(err);
+    titleEl.textContent = 'Catalog unavailable';
+    introEl.textContent = 'Unable to load bundle details.';
   }
 }
 
-// Hide pay-later for go-live
-if (payLaterBtn) {
-  payLaterBtn.style.display = 'none';
-}
+/* ===========================
+   Checkout submit (NO FETCH)
+=========================== */
+if (payLaterBtn) payLaterBtn.style.display = 'none';
 
 if (checkoutForm) {
-  checkoutForm.addEventListener('submit', async (e) => {
+  checkoutForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    if (!window.STUDYHUB_CONFIG.apiBaseUrl) {
-      checkoutStatus.textContent = 'Backend not configured. Set webappUrl in config.js.';
+    if (!window.STUDYHUB_CONFIG.webappUrl) {
+      checkoutStatus.textContent =
+        'Backend not configured. Please contact support.';
       checkoutStatus.classList.add('status-error');
       return;
     }
 
     const data = Object.fromEntries(new FormData(checkoutForm).entries());
+
     const fullName = String(data.customer_name || '').trim();
     const email = String(data.customer_email || '').trim();
     const phone = String(data.customer_phone || '').trim();
 
     if (!email) {
-      checkoutStatus.textContent = 'Please enter your email.';
+      checkoutStatus.textContent = 'Please enter your email address.';
+      checkoutStatus.classList.add('status-error');
       return;
     }
 
@@ -157,40 +148,38 @@ if (checkoutForm) {
     const name_first = parts[0] || 'Student';
     const name_last = parts.slice(1).join(' ') || 'Customer';
 
-    checkoutStatus.textContent = 'Creating PayFast checkout…';
+    checkoutStatus.textContent = 'Redirecting to PayFast…';
     checkoutStatus.classList.remove('status-error');
 
-    try {
-      // Calls Apps Script backend createCheckout (PayFast)
-      const res = await fetch(window.STUDYHUB_CONFIG.apiBaseUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'createCheckout',
-          sku: sku,
-          email: email,
-          customer_email: email,
-          customer_phone: phone,
-          name_first,
-          name_last,
-          cell_number: phone
-        })
-      });
+    // ✅ NORMAL FORM POST (NO CORS)
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = window.STUDYHUB_CONFIG.webappUrl;
 
-      if (!res.ok) throw new Error('Checkout request failed');
-      const out = await res.json();
-      if (!out.ok) throw new Error(out.error || 'Checkout failed');
+    const fields = {
+      action: 'createCheckout',
+      redirect: '1', // tells Code.gs to return HTML auto-post
+      sku: sku,
+      email: email,
+      customer_email: email,
+      customer_phone: phone,
+      name_first,
+      name_last,
+      cell_number: phone
+    };
 
-      // Submit PayFast form
-      const form = buildHiddenForm(out.payfast_url, out.payfast_payload);
-      form.submit();
-    } catch (err) {
-      console.error(err);
-      checkoutStatus.textContent =
-        'Could not start PayFast checkout. Please try again or contact support.';
-      checkoutStatus.classList.add('status-error');
-    }
+    Object.entries(fields).forEach(([k, v]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = k;
+      input.value = String(v);
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
   });
 }
 
 loadCheckout();
+``
