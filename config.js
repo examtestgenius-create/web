@@ -2,7 +2,7 @@
 
 window.STUDYHUB_CONFIG = {
   // ✅ ONLY valid Apps Script Web App endpoint
-  webappUrl: "https://script.google.com/macros/s/AKfycbyE_IJKWqFcOIoAIJ1I7yOAZ1n5E8PLQt-BLJeDgfgZ6wu15wv3e-1YqmJsRzA4skrf/exec",
+  webappUrl: "https://script.google.com/macros/s/AKfycbyXt4B0uC9UBVQil7DZN_QbxasaiE0BJAU82mdaXGRMtTwzkpJaZdpSOQAPgzo-A1Cu/exec",
 
   // ✅ Live site
   siteBaseUrl: "https://examtestpaper.co.za",
