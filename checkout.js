@@ -142,7 +142,8 @@ checkoutForm.addEventListener('submit', async (e) => {
   const out = await res.json();
   if (!out.ok) throw new Error(out.error);
 
-  buildHiddenForm(out.payfast_url, out.payfast_payload).submit();
+  const form = buildHiddenForm(out.payfast_url, out.payfast_payload);
+  form.submit();
 });
 
 loadCheckout();
