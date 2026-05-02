@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>StudyHub Package Detail</title>
+  <meta name="description" content="StudyHub package detail page" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="index.html#top" aria-label="StudyHub home">
+        <img class="brand-logo" src="assets/img/studylogo.png" alt="StudyHub logo" />
+      </a>
+      <nav>
+        <a href="index.html#featured">Featured</a>
+        <a href="index.html#packages">Packages</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="detail-main">
+    <section class="section">
+      <div class="container">
+        <a class="back-link" href="index.html#packages">← Back to packages</a>
+        <div id="detailStatus" class="section-head compact">
+          <span class="eyebrow">Package detail</span>
+          <h2>Loading package…</h2>
+          <p>Please wait while the package detail is loaded.</p>
+        </div>
+        <div id="packageDetailRoot"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© StudyHub</span>
+      <span>Package detail page</span>
+    </div>
+  </footer>
+
+  <script src="config.js"></script>
+ <script src="package.js"></script>
+</body>
+</html>
