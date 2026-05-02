@@ -1,5 +1,5 @@
+// ExamTestPaper / StudyHub Frontend Config (LIVE – FIXED)
 
-// ExamTestPaper / StudyHub Frontend Config (Live) – FIXED
 window.STUDYHUB_CONFIG = {
   webappUrl: 'https://script.google.com/macros/s/AKfycbyrGxdt2HhRklPLlpYq_1P-dGh1NfkXAXw-ZJkHmWZ5SJy5vCOHuSakr4LBXwqgz0gV8Q/exec',
   apiBaseUrl: 'https://script.google.com/macros/s/AKfycbyrGxdt2HhRklPLlpYq_1P-dGh1NfkXAXw-ZJkHmWZ5SJy5vCOHuSakr4LBXwqgz0gV8Q/exec',
