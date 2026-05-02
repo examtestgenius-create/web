@@ -1,17 +1,17 @@
-// StudyHub success.js (aligned)
-// Shows delivery link after PayFast confirmation by polling Apps Script order-status.
+// StudyHub success.js
+// Polls Apps Script for order status and shows delivery + invoice links.
 (function(){
-  window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || { webappUrl:'', apiBaseUrl:'', siteBaseUrl:'' };
+  window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || { webappUrl:'', apiBaseUrl:'' };
   const statusEl = document.getElementById('successStatus');
   const deliveryBlock = document.getElementById('deliveryBlock');
   const deliveryLink = document.getElementById('deliveryLink');
   const invoiceLink = document.getElementById('invoiceLink');
 
-  function setStatus(msg, ok){
-    if(!statusEl) return;
+  function setStatus(msg, state){
+    if (!statusEl) return;
     statusEl.textContent = msg;
-    statusEl.classList.toggle('status-ok', !!ok);
-    statusEl.classList.toggle('status-error', ok === false);
+    statusEl.classList.toggle('status-ok', state === 'ok');
+    statusEl.classList.toggle('status-error', state === 'error');
   }
 
   function getOrderId(){
@@ -21,50 +21,48 @@
 
   async function fetchOrder(orderId){
     const base = window.STUDYHUB_CONFIG.webappUrl || window.STUDYHUB_CONFIG.apiBaseUrl || '';
-    if(!base) throw new Error('Web App URL not configured in config.js');
+    if (!base) throw new Error('Web App URL missing in config.js');
     const url = base + '?action=order-status&order_id=' + encodeURIComponent(orderId);
-    const res = await fetch(url, {cache:'no-store'});
-    if(!res.ok) throw new Error('Order status request failed');
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('Order status fetch failed');
     return await res.json();
   }
 
   async function poll(){
     const orderId = getOrderId();
-    if(!orderId){
-      setStatus('Payment received. Confirming your order… (missing order reference)', false);
+    if (!orderId){
+      setStatus('Payment successful. Confirming your order… (missing order reference)', 'error');
       return;
     }
-    setStatus('Confirming your order…', null);
+    setStatus('Confirming your order…', '');
 
-    const started = Date.now();
-    const timeoutMs = 90_000;
-    const intervalMs = 3000;
+    const start = Date.now();
+    const timeoutMs = 120000;
+    while (Date.now() - start < timeoutMs){
+      try {
+        const o = await fetchOrder(orderId);
+        const status = String(o.status || '').toUpperCase();
+        const deliveryUrl = o.delivery_url || '';
+        const invoiceUrl = o.invoice_url || '';
 
-    while(Date.now() - started < timeoutMs){
-      try{
-        const order = await fetchOrder(orderId);
-        const status = String(order.status || order.Status || '').toUpperCase();
-        const deliveryUrl = order.delivery_url || order.deliveryUrl || '';
-        const invoiceUrl = order.invoice_url || order.invoiceUrl || '';
-
-        if(status === 'COMPLETE' && deliveryUrl){
-          setStatus('Order confirmed. Your download is ready.', true);
-          if(deliveryLink) deliveryLink.href = deliveryUrl;
-          if(invoiceLink) invoiceLink.href = invoiceUrl || '#';
-          if(deliveryBlock) deliveryBlock.style.display = 'block';
+        if (status === 'COMPLETE' && deliveryUrl){
+          setStatus('Order confirmed. Your download is ready.', 'ok');
+          if (deliveryLink) deliveryLink.href = deliveryUrl;
+          if (invoiceLink) invoiceLink.href = invoiceUrl || '#';
+          if (deliveryBlock) deliveryBlock.style.display = 'block';
           return;
         }
-        if(status && status !== 'PENDING'){
-          // e.g. FAILED, CANCELLED, ITN_FAILED
-          setStatus('Order status: ' + status + '. If you need help, contact support.', false);
+        if (status && status !== 'PENDING'){
+          setStatus('Order status: ' + status + '. If you need help, contact support.', 'error');
           return;
         }
-      }catch(e){
+      } catch (e) {
         // keep trying
       }
-      await new Promise(r => setTimeout(r, intervalMs));
+      await new Promise(r => setTimeout(r, 3000));
     }
-    setStatus('Still confirming payment. If this takes longer than a few minutes, contact support with your email address.', false);
+
+    setStatus('Still confirming payment. If this takes longer than a few minutes, contact support.', 'error');
   }
 
   poll();
