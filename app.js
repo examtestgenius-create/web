@@ -1,5 +1,5 @@
-// StudyHub app.js (aligned + robust)
-(function(){
+// StudyHub app.js (FIXED – no HTML entities, JSONP-safe)
+(function () {
   window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || {
     webappUrl: '',
     liveCatalogUrl: '',
@@ -19,25 +19,36 @@
 
   let catalogItems = [];
 
-  function moneyZar(cents){
+  function moneyZar(cents) {
     const n = Number(cents || 0);
     if (!n) return 'Price not set';
-    return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n/100);
+    return new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR'
+    }).format(n / 100);
   }
 
-  function esc(s){
-    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[c]);
   }
 
-  function uniqueSorted(list){
-    return Array.from(new Set((list || []).filter(Boolean).map(String))).sort((a,b)=>a.localeCompare(b));
+  function uniqueSorted(list) {
+    return Array.from(
+      new Set((list || []).filter(Boolean).map(String))
+    ).sort((a, b) => a.localeCompare(b));
   }
 
-  function jsonp(url){
+  // JSONP helper (bypasses CORS for Apps Script)
+  function jsonp(url) {
     return new Promise((resolve, reject) => {
-      const cbName = '__shcb' + Math.random().toString(36).slice(2);
-      const sep = url.indexOf('?') >= 0 ? '&' : '?';
-      const full = url + sep + 'callback=' + encodeURIComponent(cbName);
+      const cb = '__shcb' + Math.random().toString(36).slice(2);
+      const full = url + (url.includes('?') ? '&' : '?') + 'callback=' + cb;
 
       const script = document.createElement('script');
       script.src = full;
@@ -48,176 +59,122 @@
         reject(new Error('JSONP timeout'));
       }, 15000);
 
-      function cleanup(){
+      function cleanup() {
         clearTimeout(timeout);
-        delete window[cbName];
-        if (script.parentNode) script.parentNode.removeChild(script);
+        delete window[cb];
+        script.remove();
       }
 
-      window[cbName] = (data) => {
+      window[cb] = data => {
         cleanup();
         resolve(data);
       };
 
       script.onerror = () => {
         cleanup();
-        reject(new Error('JSONP load failed'));
+        reject(new Error('JSONP failed'));
       };
 
       document.head.appendChild(script);
     });
   }
 
-  async function fetchCatalog(){
-    const tryUrls = [];
-    if (window.STUDYHUB_CONFIG.liveCatalogUrl) tryUrls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
-    tryUrls.push(window.STUDYHUB_CONFIG.fallbackCatalogUrl);
+  async function fetchCatalog() {
+    const urls = [];
+    if (window.STUDYHUB_CONFIG.liveCatalogUrl) {
+      urls.push(window.STUDYHUB_CONFIG.liveCatalogUrl);
+    }
+    urls.push(window.STUDYHUB_CONFIG.fallbackCatalogUrl);
 
-    const errors = [];
-    for (const url of tryUrls){
+    for (const url of urls) {
       try {
         const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return await res.json();
-      } catch (e){
-        errors.push(url + ': ' + (e.message || e));
-      }
+        if (res.ok) return await res.json();
+      } catch (_) {}
     }
 
-    // JSONP fallback for Apps Script (fixes CORS issues)
-    if (window.STUDYHUB_CONFIG.webappUrl){
-      try {
-        return await jsonp(window.STUDYHUB_CONFIG.webappUrl + '?action=catalog');
-      } catch (e2){
-        errors.push('jsonp: ' + (e2.message || e2));
-      }
+    if (window.STUDYHUB_CONFIG.webappUrl) {
+      return await jsonp(window.STUDYHUB_CONFIG.webappUrl + '?action=catalog');
     }
 
-    throw new Error(errors.join('
-'));
+    throw new Error('Catalog unavailable');
   }
 
-  function getField(item, ...keys){
-    for (const k of keys){
-      if (item && item[k] !== undefined && item[k] !== null) return item[k];
+  function getField(item, ...keys) {
+    for (const k of keys) {
+      if (item && item[k] !== undefined && item[k] !== null) {
+        return item[k];
+      }
     }
     return '';
   }
 
-  function cardMarkup(item, featured){
-    const sku = String(getField(item,'sku','SKU'));
-    const type = String(getField(item,'bundle_type','Bundle_Type','type') || 'Bundle');
-    const subject = String(getField(item,'subject_or_all','Subject_Name') || 'ALL');
-    const grade = String(getField(item,'grade','Grade') || '');
-    const years = String(getField(item,'year_or_range','Coverage_To_Year') || '');
-    const papers = Number(getField(item,'file_count','Included_File_Count') || 0);
-    const price = moneyZar(Number(getField(item,'price_cents','Price_Cents') || 0));
-    const desc = String(getField(item,'description','Notes') || 'Metadata-driven bundle generated from the StudyHub library.');
-
-    const tag = featured ? 'Featured' : type;
-    const wrapper = featured ? 'featured-card card-surface' : 'card-surface';
+  function cardMarkup(item, featured) {
+    const sku = String(getField(item, 'sku', 'SKU'));
+    const type = String(getField(item, 'bundle_type', 'type') || 'Bundle');
+    const subject = String(getField(item, 'subject_or_all') || 'ALL');
+    const grade = String(getField(item, 'grade') || '');
+    const years = String(getField(item, 'year_or_range') || '');
+    const papers = Number(getField(item, 'file_count') || 0);
+    const price = moneyZar(getField(item, 'price_cents'));
+    const desc = String(getField(item, 'description') || '');
 
     return `
-      <article class="${wrapper}">
-        <span class="card-tag">${esc(tag)}</span>
-        <h3>${esc(sku || type)}</h3>
+      <article class="card-surface ${featured ? 'featured-card' : ''}">
+        <span class="card-tag">${esc(featured ? 'Featured' : type)}</span>
+        <h3>${esc(sku)}</h3>
         <div class="badge-row">
           ${grade ? `<span class="badge">Grade ${esc(grade)}</span>` : ''}
           <span class="badge">${esc(subject)}</span>
           ${years ? `<span class="badge">${esc(years)}</span>` : ''}
         </div>
         <p>${esc(desc)}</p>
-        <ul>
-          <li>Papers included: ${isNaN(papers) ? 0 : papers}</li>
-        </ul>
-        <div class="price-chip">${esc(price)}</div>
+        <ul><li>Papers included: ${papers}</li></ul>
+        <div class="price-chip">${price}</div>
         <div class="card-actions">
           <a class="btn btn-secondary" href="package.html?sku=${encodeURIComponent(sku)}">View details</a>
           <a class="btn btn-primary" href="checkout.html?sku=${encodeURIComponent(sku)}">Buy package</a>
         </div>
-      </article>
-    `;
+      </article>`;
   }
 
-  function populateFilters(items){
-    if (!filterType || !filterProvince || !filterSubject) return;
+  function applyFilters() {
+    const type = filterType?.value || 'ALL';
+    const subject = filterSubject?.value || 'ALL';
+    const term = (searchInput?.value || '').toLowerCase();
 
-    const types = uniqueSorted(items.map(i => getField(i,'bundle_type','Bundle_Type','type')));
-    const subjects = uniqueSorted(items.map(i => getField(i,'subject_or_all','Subject_Name')));
-
-    filterType.innerHTML = '<option value="ALL">All types</option>' + types.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
-    filterProvince.innerHTML = '<option value="ALL">All provinces</option><option value="ALL">ALL</option>';
-    filterSubject.innerHTML = '<option value="ALL">All subjects</option>' + subjects.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
-  }
-
-  function applyFilters(){
-    if (!cardsRoot) return;
-    const type = filterType ? filterType.value : 'ALL';
-    const subject = filterSubject ? filterSubject.value : 'ALL';
-    const term = (searchInput ? searchInput.value : '').trim().toLowerCase();
-
-    let filtered = catalogItems.filter(item => {
-      const itemType = String(getField(item,'bundle_type','Bundle_Type','type') || 'Bundle');
-      const itemSubject = String(getField(item,'subject_or_all','Subject_Name') || 'ALL');
-      const sku = String(getField(item,'sku','SKU') || '');
-      const blob = (sku + ' ' + itemType + ' ' + itemSubject + ' ' + String(getField(item,'description','Notes')||'')).toLowerCase();
-
-      if (type !== 'ALL' && itemType !== type) return false;
-      if (subject !== 'ALL' && itemSubject !== subject) return false;
-      if (term && !blob.includes(term)) return false;
-      return true;
+    const filtered = catalogItems.filter(i => {
+      const t = String(getField(i, 'bundle_type') || 'Bundle');
+      const s = String(getField(i, 'subject_or_all') || 'ALL');
+      const blob = (t + ' ' + s + ' ' + getField(i, 'sku') + ' ' + getField(i, 'description')).toLowerCase();
+      return (type === 'ALL' || t === type)
+        && (subject === 'ALL' || s === subject)
+        && (!term || blob.includes(term));
     });
 
-    if (sortBy && sortBy.value === 'priceAsc') filtered.sort((a,b)=>Number(getField(a,'price_cents','Price_Cents')||0)-Number(getField(b,'price_cents','Price_Cents')||0));
-    else if (sortBy && sortBy.value === 'priceDesc') filtered.sort((a,b)=>Number(getField(b,'price_cents','Price_Cents')||0)-Number(getField(a,'price_cents','Price_Cents')||0));
-
-    cardsRoot.innerHTML = filtered.length ? filtered.map(i => cardMarkup(i,false)).join('') : (
-      '<article class="card-surface"><h3>No matches</h3><p>Try a different search or filter combination.</p></article>'
-    );
+    cardsRoot.innerHTML = filtered.length
+      ? filtered.map(i => cardMarkup(i, false)).join('')
+      : '<article class="card-surface"><h3>No matches</h3></article>';
   }
 
-  function renderFeatured(items){
-    if (!featuredRoot) return;
-    const top = items.slice(0,3);
-    featuredRoot.innerHTML = top.map(i => cardMarkup(i,true)).join('');
-  }
-
-  async function load(){
+  async function load() {
     try {
-      const payload = await fetchCatalog();
-      catalogItems = payload.items || payload.packages || [];
-      const generated = payload.generated_at || payload.generatedAt || 'Unknown';
+      const data = await fetchCatalog();
+      catalogItems = data.items || [];
 
-      if (metaEl){
-        metaEl.textContent = `Loaded ${catalogItems.length} bundles. Generated: ${generated}`;
-        metaEl.classList.add('status-ok');
-      }
+      metaEl.textContent = `Loaded ${catalogItems.length} bundles`;
+      metaEl.classList.add('status-ok');
 
-      populateFilters(catalogItems);
-      renderFeatured(catalogItems);
-      applyFilters();
+      cardsRoot.innerHTML = catalogItems.map(i => cardMarkup(i, false)).join('');
 
-      [filterType, filterProvince, filterSubject, sortBy].forEach(el => el && el.addEventListener('change', applyFilters));
-      if (searchInput) searchInput.addEventListener('input', applyFilters);
-      if (clearFilters) clearFilters.addEventListener('click', () => {
-        if (filterType) filterType.value = 'ALL';
-        if (filterProvince) filterProvince.value = 'ALL';
-        if (filterSubject) filterSubject.value = 'ALL';
-        if (sortBy) sortBy.value = 'featured';
-        if (searchInput) searchInput.value = '';
-        applyFilters();
-      });
+      filterType?.addEventListener('change', applyFilters);
+      filterSubject?.addEventListener('change', applyFilters);
+      sortBy?.addEventListener('change', applyFilters);
+      searchInput?.addEventListener('input', applyFilters);
 
-    } catch (err){
-      console.error(err);
-      if (metaEl){
-        metaEl.textContent = 'Catalog could not be loaded.';
-        metaEl.classList.add('status-error');
-      }
-      if (cardsRoot){
-        cardsRoot.innerHTML = '<article class="card-surface"><h3>Catalog unavailable</h3><p>Check your Apps Script deployment and config.js settings.</p></article>';
-      }
-      if (featuredRoot) featuredRoot.innerHTML = '';
+    } catch (e) {
+      metaEl.textContent = 'Catalog could not be loaded';
+      metaEl.classList.add('status-error');
     }
   }
 
