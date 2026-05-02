@@ -78,8 +78,6 @@ const filesMeta = document.getElementById('filesMeta');
 const checkoutForm = document.getElementById('checkoutForm');
 const checkoutStatus = document.getElementById('checkoutStatus');
 
-let currentItem = null;
-
 async function loadCheckout() {
   if (!sku) {
     titleEl.textContent = 'Missing bundle';
@@ -91,25 +89,24 @@ async function loadCheckout() {
   try {
     const { payload } = await fetchStudyHubCatalog();
     const items = payload.items || payload.packages || [];
-    currentItem = items.find(v => String(v.sku || v.SKU || '') === sku);
+    const item = items.find(v => String(v.sku || v.SKU || '') === sku);
 
-    if (!currentItem) {
+    if (!item) {
       titleEl.textContent = 'Bundle not found';
       return;
     }
 
     titleEl.textContent = `Checkout — ${sku}`;
-    introEl.innerHTML =
-      'Secure payment via <strong>PayFast</strong>. Each paper includes the question paper and memo.';
-    priceEl.textContent = moneyZarFromCents(currentItem.price_cents);
+    introEl.innerHTML = 'Secure payment via <strong>PayFast</strong>. Each paper includes the question paper and memo.';
+    priceEl.textContent = moneyZarFromCents(item.price_cents);
     badgesEl.innerHTML = `
-      ${currentItem.grade ? `<span class="badge">Grade ${currentItem.grade}</span>` : ''}
-      <span class="badge">${currentItem.subject_or_all || 'ALL'}</span>
-      ${currentItem.year_or_range ? `<span class="badge">${currentItem.year_or_range}</span>` : ''}
+      ${item.grade ? `<span class="badge">Grade ${item.grade}</span>` : ''}
+      <span class="badge">${item.subject_or_all || 'ALL'}</span>
+      ${item.year_or_range ? `<span class="badge">${item.year_or_range}</span>` : ''}
     `;
-    fromYearMeta.textContent = currentItem.year_or_range || '—';
-    toYearMeta.textContent = currentItem.year_or_range || '—';
-    filesMeta.textContent = `${itemPapers(currentItem)} papers (question + memo)`;
+    fromYearMeta.textContent = item.year_or_range || '—';
+    toYearMeta.textContent = item.year_or_range || '—';
+    filesMeta.textContent = `${itemPapers(item)} papers (question + memo)`;
   } catch (err) {
     console.error(err);
     titleEl.textContent = 'Catalog unavailable';
@@ -142,8 +139,7 @@ checkoutForm.addEventListener('submit', async (e) => {
   const out = await res.json();
   if (!out.ok) throw new Error(out.error);
 
-  const form = buildHiddenForm(out.payfast_url, out.payfast_payload);
-  form.submit();
+  buildHiddenForm(out.payfast_url, out.payfast_payload).submit();
 });
 
 loadCheckout();
