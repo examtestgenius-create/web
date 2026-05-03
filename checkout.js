@@ -1,7 +1,7 @@
-// checkout.js (PRODUCTION - form POST to Apps Script, no fetch)
 (function () {
   const cfg = window.STUDYHUB_CONFIG || {};
-  const BACKEND_URL = (cfg.webappUrl || '').trim();
+  const BACKEND_URL = (cfg.webappUrl || "").trim();
+  const CATALOG_URL = (cfg.fallbackCatalogUrl || "data/catalog.json").trim();
 
   const params = new URLSearchParams(location.search);
   const sku = (params.get("sku") || "").trim();
@@ -11,8 +11,17 @@
 
   function showStatus(message) {
     if (!status) return;
+    if (!message) {
+      status.classList.add("hidden");
+      status.textContent = "";
+      return;
+    }
     status.classList.remove("hidden");
     status.textContent = message;
+  }
+
+  function money(cents) {
+    return "R" + (Number(cents || 0) / 100).toFixed(2);
   }
 
   function fail(msg) {
@@ -25,53 +34,98 @@
   if (!BACKEND_URL) return fail("Missing STUDYHUB_CONFIG.webappUrl in config.js");
   if (!sku) return fail("Missing SKU in URL. Example: checkout.html?sku=ETP-G12-2025-SY");
 
-  // Ensure your form contains these input fields (name/email/phone)
-  const nameInput = form.querySelector('input[name="name"]');
-  const emailInput = form.querySelector('input[name="email"]');
-  const phoneInput = form.querySelector('input[name="phone"]');
-  const notesInput = form.querySelector('textarea[name="notes"]');
+  (async function init() {
+    try {
+      showStatus("Loading pack details...");
 
-  if (!nameInput || !emailInput) {
-    return fail("Missing name/email input fields in checkoutForm.");
-  }
+      const catalogRes = await fetch(CATALOG_URL, { cache: "no-store" });
+      if (!catalogRes.ok) throw new Error("Could not load catalog.json");
 
-  form.addEventListener("submit", function (ev) {
-    ev.preventDefault();
+      const catalog = await catalogRes.json();
+      const item = (catalog.items || []).find(x => String(x.sku || "") === sku);
 
-    const name = (nameInput.value || "").trim();
-    const email = (emailInput.value || "").trim();
-    const phone = phoneInput ? (phoneInput.value || "").trim() : "";
-    const notes = notesInput ? (notesInput.value || "").trim() : "";
+      if (!item) {
+        form.innerHTML = "<p>Pack not found.</p>";
+        showStatus("");
+        return;
+      }
 
-    if (!name) return fail("Please enter your name.");
-    if (!email) return fail("Please enter your email.");
+      // Inject the actual inputs into the empty form
+      form.innerHTML = `
+        <p><strong>${item.title}</strong></p>
+        <p>Price: ${money(item.price_cents)}</p>
 
-    showStatus("Redirecting to secure PayFast checkout...");
+        <label>
+          Name
+          <input id="nameInput" type="text" name="name" required>
+        </label>
 
-    // Create hidden POST form to Apps Script (NO CORS issues)
-    const postForm = document.createElement("form");
-    postForm.method = "POST";
-    postForm.action = BACKEND_URL;
-    postForm.style.display = "none";
+        <label>
+          Email
+          <input id="emailInput" type="email" name="email" required>
+        </label>
 
-    const fields = {
-      action: "createCheckout",
-      sku: sku,
-      name: name,
-      email: email,
-      phone: phone,
-      notes: notes
-    };
+        <label>
+          Phone
+          <input id="phoneInput" type="tel" name="phone">
+        </label>
 
-    Object.keys(fields).forEach((k) => {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = k;
-      input.value = fields[k];
-      postForm.appendChild(input);
-    });
+        <label>
+          Notes (optional)
+          <textarea id="notesInput" name="notes"></textarea>
+        </label>
 
-    document.body.appendChild(postForm);
-    postForm.submit();
-  });
+        <button type="submit" class="btn btn-primary">
+          Proceed to PayFast
+        </button>
+      `;
+
+      showStatus("");
+
+      form.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+
+        const name = (document.getElementById("nameInput")?.value || "").trim();
+        const email = (document.getElementById("emailInput")?.value || "").trim();
+        const phone = (document.getElementById("phoneInput")?.value || "").trim();
+        const notes = (document.getElementById("notesInput")?.value || "").trim();
+
+        if (!name) return fail("Please enter your name.");
+        if (!email) return fail("Please enter your email.");
+
+        showStatus("Redirecting to secure PayFast checkout...");
+
+        // POST to Apps Script using a real form submit
+        const postForm = document.createElement("form");
+        postForm.method = "POST";
+        postForm.action = BACKEND_URL;
+        postForm.style.display = "none";
+
+        const fields = {
+          action: "createCheckout",
+          sku: item.sku,
+          name,
+          email,
+          phone,
+          notes
+        };
+
+        Object.keys(fields).forEach((k) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = k;
+          input.value = fields[k] || "";
+          postForm.appendChild(input);
+        });
+
+        document.body.appendChild(postForm);
+        postForm.submit();
+      });
+
+    } catch (err) {
+      console.error(err);
+      form.innerHTML = "<p>Unable to load checkout right now.</p>";
+      showStatus(err.message || "Checkout failed to load");
+    }
+  })();
 })();
