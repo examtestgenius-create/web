@@ -1,0 +1,62 @@
+{
+  "version": "2.1",
+  "generated_at": "2026-05-03T11:46:32+02:00",
+  "items": [
+    {
+      "sku": "ETP-G12-MATH-2025-SS",
+      "bundle_type": "Single Subject",
+      "title": "Grade 12 Mathematics 2025 Single Subject Pack",
+      "grade": "12",
+      "year_or_range": "2025",
+      "subject_or_all": "Mathematics",
+      "price_cents": 9900,
+      "driveUrl": "",
+      "deliveryUrl": "",
+      "file_count": 24,
+      "published": true,
+      "description": "One subject, one year. Best for focused revision with verified paper + memo records."
+    },
+    {
+      "sku": "ETP-G12-2025-SY",
+      "bundle_type": "Single Year",
+      "title": "Grade 12 2025 Full Year Pack",
+      "grade": "12",
+      "year_or_range": "2025",
+      "subject_or_all": "ALL",
+      "price_cents": 29900,
+      "driveUrl": "",
+      "deliveryUrl": "",
+      "file_count": 132,
+      "published": true,
+      "description": "All selected subjects for one year, built from complete queue records only."
+    },
+    {
+      "sku": "ETP-G12-MATH-2022-2026-MB",
+      "bundle_type": "Master Bundle",
+      "title": "Grade 12 Mathematics Master Bundle",
+      "grade": "12",
+      "year_or_range": "2022-2026",
+      "subject_or_all": "Mathematics",
+      "price_cents": 19900,
+      "driveUrl": "",
+      "deliveryUrl": "",
+      "file_count": 118,
+      "published": true,
+      "description": "One subject across all supported years from 2022 onwards."
+    },
+    {
+      "sku": "ETP-G12-UB",
+      "bundle_type": "Ultimate Bundle",
+      "title": "Grade 12 Ultimate Bundle",
+      "grade": "12",
+      "year_or_range": "2022-2026",
+      "subject_or_all": "ALL",
+      "price_cents": 49900,
+      "driveUrl": "",
+      "deliveryUrl": "",
+      "file_count": 410,
+      "published": true,
+      "description": "Everything available for the grade across all supported years."
+    }
+  ]
+}

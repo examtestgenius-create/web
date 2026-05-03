@@ -1,0 +1,9 @@
+{
+  "site_name": "Exam Test Paper",
+  "domain": "examtestpaper.co.za",
+  "support_email": "examtestgenius@gmail.com",
+  "notify_email": "examtestgenius@gmail.com",
+  "year_min": 2022,
+  "cookie_consent_enabled": true,
+  "analytics_enabled": false
+}
