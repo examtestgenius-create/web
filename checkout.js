@@ -1,9 +1,10 @@
-(async function () {
-  const BACKEND_URL =
-    "https://script.google.com/macros/s/AKfycbyrGxdt2HhRklPLlpYq_1P-dGh1NfkXAXw-ZJkHmWZ5SJy5vCOHuSakr4LBXwqgz0gV8Q/exec";
+// checkout.js (PRODUCTION - form POST to Apps Script, no fetch)
+(function () {
+  const cfg = window.STUDYHUB_CONFIG || {};
+  const BACKEND_URL = (cfg.webappUrl || '').trim();
 
   const params = new URLSearchParams(location.search);
-  const sku = params.get("sku");
+  const sku = (params.get("sku") || "").trim();
 
   const form = document.getElementById("checkoutForm");
   const status = document.getElementById("checkoutStatus");
@@ -14,103 +15,63 @@
     status.textContent = message;
   }
 
-  function money(cents) {
-    return "R" + (Number(cents || 0) / 100).toFixed(2);
+  function fail(msg) {
+    console.error(msg);
+    showStatus(msg);
+    alert(msg);
   }
 
-  try {
-    const catalogRes = await fetch("data/catalog.json", { cache: "no-store" });
-    if (!catalogRes.ok) throw new Error("Could not load catalog.json");
+  if (!form) return fail("checkoutForm element not found on page.");
+  if (!BACKEND_URL) return fail("Missing STUDYHUB_CONFIG.webappUrl in config.js");
+  if (!sku) return fail("Missing SKU in URL. Example: checkout.html?sku=ETP-G12-2025-SY");
 
-    const catalog = await catalogRes.json();
-    const item =
-      (catalog.items || []).find((x) => x.sku === sku) ||
-      (catalog.items || [])[0];
+  // Ensure your form contains these input fields (name/email/phone)
+  const nameInput = form.querySelector('input[name="name"]');
+  const emailInput = form.querySelector('input[name="email"]');
+  const phoneInput = form.querySelector('input[name="phone"]');
+  const notesInput = form.querySelector('textarea[name="notes"]');
 
-    if (!item) {
-      form.innerHTML = "<p>Pack not found.</p>";
-      return;
-    }
+  if (!nameInput || !emailInput) {
+    return fail("Missing name/email input fields in checkoutForm.");
+  }
 
-    form.innerHTML = `
-      <p><strong>${item.title}</strong></p>
-      <p>Price: ${money(item.price_cents)}</p>
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
 
-      <label>
-        Name
-        <input type="text" name="name" required>
-      </label>
+    const name = (nameInput.value || "").trim();
+    const email = (emailInput.value || "").trim();
+    const phone = phoneInput ? (phoneInput.value || "").trim() : "";
+    const notes = notesInput ? (notesInput.value || "").trim() : "";
 
-      <label>
-        Email
-        <input type="email" name="email" required>
-      </label>
+    if (!name) return fail("Please enter your name.");
+    if (!email) return fail("Please enter your email.");
 
-      <label>
-        Phone
-        <input type="tel" name="phone">
-      </label>
+    showStatus("Redirecting to secure PayFast checkout...");
 
-      <button type="submit" class="btn btn-primary">
-        Proceed to PayFast
-      </button>
-    `;
+    // Create hidden POST form to Apps Script (NO CORS issues)
+    const postForm = document.createElement("form");
+    postForm.method = "POST";
+    postForm.action = BACKEND_URL;
+    postForm.style.display = "none";
 
-    form.addEventListener("submit", async function (ev) {
-      ev.preventDefault();
+    const fields = {
+      action: "createCheckout",
+      sku: sku,
+      name: name,
+      email: email,
+      phone: phone,
+      notes: notes
+    };
 
-      showStatus("Preparing secure checkout...");
-
-      const fd = new FormData(form);
-
-      const payload = new URLSearchParams({
-        action: "createCheckout",
-        sku: item.sku,
-        name: fd.get("name") || "",
-        email: fd.get("email") || "",
-        phone: fd.get("phone") || "",
-      });
-
-      try {
-        const res = await fetch(BACKEND_URL, {
-          method: "POST",
-          body: payload,
-        });
-
-        const data = await res.json();
-
-        if (!data.ok) {
-          throw new Error(data.error || "Checkout could not start");
-        }
-
-        if (!data.payfast_url || !data.payfast_payload) {
-          throw new Error("Backend did not return PayFast checkout data");
-        }
-
-        const pfForm = document.createElement("form");
-        pfForm.method = "POST";
-        pfForm.action = data.payfast_url;
-
-        Object.entries(data.payfast_payload).forEach(([key, value]) => {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = key;
-          input.value = value;
-          pfForm.appendChild(input);
-        });
-
-        document.body.appendChild(pfForm);
-
-        showStatus("Redirecting to secure PayFast checkout...");
-        pfForm.submit();
-      } catch (err) {
-        console.error(err);
-        showStatus(err.message || "Checkout failed");
-      }
+    Object.keys(fields).forEach((k) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = k;
+      input.value = fields[k];
+      postForm.appendChild(input);
     });
-  } catch (err) {
-    console.error(err);
-    if (form) form.innerHTML = "<p>Unable to load checkout right now.</p>";
-    showStatus(err.message || "Checkout failed to load");
-  }
+
+    document.body.appendChild(postForm);
+    postForm.submit();
+  });
 })();
