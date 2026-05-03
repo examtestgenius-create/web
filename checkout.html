@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>StudyHub | Checkout</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><img class="logo" src="assets/images/studylogo.png" alt="StudyHub logo" /></a>
+    <nav class="nav"><a href="catalog.html">Back to catalog</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
+  </header>
+
+  <main class="container section">
+    <div class="section-head"><h1>Checkout</h1><p>Confirm your product and pay securely via PayFast.</p></div>
+    <div class="checkout-grid">
+      <section class="card" id="productSummary" aria-live="polite"><h2>Loading product…</h2></section>
+      <section class="card">
+        <h2>PayFast Payment</h2>
+        <p class="muted">You will be redirected to PayFast to complete payment. After payment, you receive your ZIP link and invoice by email.</p>
+        <form id="payfastForm" method="post" action="https://www.payfast.co.za/eng/process">
+          <input type="hidden" name="merchant_id" id="pf_merchant_id" value="" />
+          <input type="hidden" name="merchant_key" id="pf_merchant_key" value="" />
+          <input type="hidden" name="return_url" id="pf_return_url" value="" />
+          <input type="hidden" name="cancel_url" id="pf_cancel_url" value="" />
+          <input type="hidden" name="notify_url" id="pf_notify_url" value="" />
+          <input type="hidden" name="m_payment_id" id="pf_order_id" value="" />
+          <input type="hidden" name="item_name" id="pf_item_name" value="" />
+          <input type="hidden" name="amount" id="pf_amount" value="" />
+
+          <div class="field">
+            <label for="buyer_email">Email address (for delivery)</label>
+            <input id="buyer_email" name="email_address" type="email" placeholder="you@example.com" required />
+            <p class="hint">We send the ZIP download link and invoice to this email.</p>
+          </div>
+
+          <button id="payBtn" class="btn btn-primary" type="submit" disabled>Pay Now</button>
+          <p class="hint">If the Pay button stays disabled, create <code>assets/js/config.js</code> from <code>config.example.js</code>.</p>
+        </form>
+
+        <div class="divider"></div>
+        <p class="muted">Tip: For production, set PayFast LIVE merchant details in <code>assets/js/config.js</code>. Never commit secrets to public repos.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+  <div class="container footer-row">
+    <div>
+      <img class="logo-sm" src="assets/images/studylogo.png" alt="StudyHub" />
+      <p class="muted">Grades 8–12 • 2022 onwards • All provinces included</p>
+    </div>
+    <div class="footer-links">
+      <a href="catalog.html">Catalog</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="sitemap.xml">Sitemap</a>
+    </div>
+  </div>
+  <div class="container"><p class="muted">© <span id="y"></span> StudyHub • Powered by PayFast</p></div>
+</footer>
+
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/config.example.js"></script>
+  <script src="assets/js/checkout.js"></script>
+</body>
+</html>
