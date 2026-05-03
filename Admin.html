@@ -1,0 +1,9 @@
+<!doctype html><html><head><base target="_top"><style>
+body{font-family:Arial,sans-serif;padding:24px;background:#0b1220;color:#f4f8ff}.card{background:#101b30;border:1px solid #223450;padding:18px;border-radius:16px;margin-bottom:16px}button{padding:10px 14px;border:none;border-radius:999px;background:#2f76ff;color:#fff;font-weight:700;cursor:pointer;margin-right:10px;margin-bottom:8px}
+</style></head><body>
+<h1>Exam Test Paper Admin</h1>
+<div class="card"><h3>Setup</h3><button onclick="google.script.run.withSuccessHandler(x=>alert(JSON.stringify(x,null,2))).setupStudyHub_()">Run setupStudyHub_()</button></div>
+<div class="card"><h3>Scanner</h3><button onclick="google.script.run.withSuccessHandler(x=>alert(JSON.stringify(x,null,2))).runDiscoveryRefresh()">Seed Queue</button></div>
+<div class="card"><h3>Catalog</h3><button onclick="google.script.run.withSuccessHandler(x=>alert(JSON.stringify(x,null,2))).generateCatalog_()">Generate Catalog</button></div>
+<div class="card"><h3>Bundle ZIP Delivery</h3><button onclick="google.script.run.withSuccessHandler(x=>alert(JSON.stringify(x,null,2))).refreshCatalogDeliveryUrlsFromZipMap_()">Refresh delivery URLs</button></div>
+</body></html>
