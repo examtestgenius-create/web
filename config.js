@@ -1,8 +1,12 @@
-// StudyHub Frontend Config (Go-Live)
-// Paste your deployed Apps Script Web App URL (ends with /exec)
+// config.js (StudyHub / ExamTestPaper configuration)
 window.STUDYHUB_CONFIG = window.STUDYHUB_CONFIG || {};
-window.STUDYHUB_CONFIG.webappUrl = '__PASTE_APPS_SCRIPT_WEBAPP_URL__';
-window.STUDYHUB_CONFIG.siteBaseUrl = '__PASTE_GITHUB_PAGES_BASE_URL__';
-window.STUDYHUB_CONFIG.liveCatalogUrl = window.STUDYHUB_CONFIG.webappUrl ? (window.STUDYHUB_CONFIG.webappUrl + '?action=catalog') : '';
-window.STUDYHUB_CONFIG.apiBaseUrl = window.STUDYHUB_CONFIG.webappUrl || '';
-window.STUDYHUB_CONFIG.fallbackCatalogUrl = 'data/catalog.sample.json';
+
+// Apps Script Web App URL (must end with /exec)
+window.STUDYHUB_CONFIG.webappUrl =
+  "https://script.google.com/macros/s/AKfycbyrGxdt2HhRklPLlpYq_1P-dGh1NfkXAXw-ZJkHmWZ5SJy5vCOHuSakr4LBXwqgz0gV8Q/exec";
+
+// Public site base URL (NO trailing slash)
+window.STUDYHUB_CONFIG.siteBaseUrl = "https://examtestpaper.co.za";
+
+// Where your frontend catalog file lives (local fallback)
+window.STUDYHUB_CONFIG.fallbackCatalogUrl = "data/catalog.json";
