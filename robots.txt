@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://YOUR_USERNAME.github.io/studyhub-site/sitemap.xml
