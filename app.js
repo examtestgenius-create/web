@@ -14,5 +14,24 @@ function addToCart(sku){if(!cart.includes(sku))cart.push(sku);renderCartBar()}
 function renderCartBar(){let b=document.getElementById('cartBar');if(!b){b=document.createElement('div');b.id='cartBar';b.className='cart-bar';b.innerHTML='<strong id="cartCount">Cart (0)</strong><button class="btn btn-secondary" id="clearCart">Clear</button><button class="btn btn-primary" id="cartCheckout">Checkout Cart</button>';document.body.appendChild(b);document.getElementById('clearCart').onclick=()=>{cart=[];renderCartBar()};document.getElementById('cartCheckout').onclick=checkoutCart}document.getElementById('cartCount').textContent=`Cart (${cart.length})`;b.classList.toggle('show',cart.length>0)}
 async function checkoutCart(){if(!cart.length)return alert('Cart empty');const email=prompt('Email for ZIPs and invoice:');if(!validEmail(email))return alert('Enter a valid email.');try{const d=await post({action:'checkoutCart',skus:cart,email});alert(`Bulk discount: R ${(d.pricing.discount_cents/100).toFixed(2)}\nTotal: R ${(d.pricing.total_cents/100).toFixed(2)}`);submitPayFast(d.payfast)}catch(e){alert(e.message)}}
 async function post(body){const r=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});const d=await r.json();if(!d.ok)throw Error(d.error||'Request failed');return d}
-function submitPayFast(pf){const f=document.createElement('form');f.method='POST';f.action=pf.process_url;Object.entries(pf).forEach(([k,v])=>{if(k==='process_url')return;let i=document.createElement('input');i.type='hidden';i.name=k;i.value=v;f.appendChild(i)});document.body.appendChild(f);f.submit()}
+function submitPayFast(pf){
+  const f = document.createElement('form');
+  f.method = 'POST';
+  f.action = pf.process_url;
+
+  Object.entries(pf).forEach(([k,v])=>{
+    if (k === 'process_url') return;
+    if (v === undefined || v === null || String(v).trim() === '') return;
+
+    const i = document.createElement('input');
+    i.type = 'hidden';
+    i.name = k;
+    i.value = String(v);
+    f.appendChild(i);
+  });
+
+  document.body.appendChild(f);
+  f.submit();
+}
+
 function validEmail(e){return e&&/\S+@\S+\.\S+/.test(e)}function fmt(v){return String(v||'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase())}function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
