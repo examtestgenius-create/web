@@ -92,7 +92,51 @@
           <h2>Clean bundles. No clutter. No half-complete papers.</h2>
           <p>Every pack is built from complete papers with memos and grouped into simple digital products.</p>
         </div>
-        <div class="pack-grid" id="packCards"></div>
+  
+      <div class="mobile-pack-tools" id="packTools">
+        <div class="tool-row">
+          <input class="input pack-search" id="packSearch" type="search" placeholder="Search grade, subject or year..." />
+          <select class="input pack-select" id="bundleFilter">
+            <option value="ALL">All bundles</option>
+            <option value="SINGLE_SUBJECT">Single Subject</option>
+            <option value="SINGLE_YEAR">Single Year</option>
+            <option value="MASTER">Master</option>
+            <option value="ULTIMATE">Ultimate</option>
+            <option value="PAPER_PAIR">Paper Pair</option>
+          </select>
+        </div>
+        <div class="quick-filters" id="quickFilters">
+          <button class="qf active" data-filter="ALL">All</button>
+          <button class="qf" data-filter="SINGLE_SUBJECT">Subject</button>
+          <button class="qf" data-filter="SINGLE_YEAR">Year</button>
+          <button class="qf" data-filter="MASTER">Master</button>
+          <button class="qf" data-filter="ULTIMATE">Ultimate</button>
+        </div>
+        <p class="fine" id="packCountText">Loading packs...</p>
+      </div>
+      
+      <div class="mobile-pack-tools" id="packTools">
+        <div class="tool-row">
+          <input class="input pack-search" id="packSearch" type="search" placeholder="Search grade, subject or year..." />
+          <select class="input pack-select" id="bundleFilter">
+            <option value="ALL">All bundles</option>
+            <option value="SINGLE_SUBJECT">Single Subject</option>
+            <option value="SINGLE_YEAR">Single Year</option>
+            <option value="MASTER">Master</option>
+            <option value="ULTIMATE">Ultimate</option>
+            <option value="PAPER_PAIR">Paper Pair</option>
+          </select>
+        </div>
+        <div class="quick-filters" id="quickFilters">
+          <button class="qf active" data-filter="ALL">All</button>
+          <button class="qf" data-filter="SINGLE_SUBJECT">Subject</button>
+          <button class="qf" data-filter="SINGLE_YEAR">Year</button>
+          <button class="qf" data-filter="MASTER">Master</button>
+          <button class="qf" data-filter="ULTIMATE">Ultimate</button>
+        </div>
+        <p class="fine" id="packCountText">Loading packs...</p>
+      </div>
+      <div class="pack-grid" id="packCards"></div>
       </div>
     </section>
 
@@ -149,48 +193,5 @@
   </footer>
 
   <script src="app.js"></script>
-
-<script>
-(function paperWordAndCountFix(){
-  function convertTextNode(node){
-    if (!node || !node.nodeValue) return;
-    let t = node.nodeValue;
-
-    // Convert "Files: 240" / "Files 240" to "Papers: 120" because 1 paper = paper + memo.
-    t = t.replace(/Files\s*:\s*(\d+)/gi, function(_, n){
-      const papers = Math.max(0, Math.floor(parseInt(n, 10) / 2));
-      return 'Papers: ' + papers;
-    });
-    t = t.replace(/Files\s+(\d+)/gi, function(_, n){
-      const papers = Math.max(0, Math.floor(parseInt(n, 10) / 2));
-      return 'Papers ' + papers;
-    });
-
-    // General customer-facing wording cleanup.
-    t = t.replace(/\bfiles\b/gi, function(m){ return m[0] === 'F' ? 'Papers' : 'papers'; });
-    t = t.replace(/\bfile\b/gi, function(m){ return m[0] === 'F' ? 'Paper' : 'paper'; });
-    t = t.replace(/All available subjects for (\d{4})\./gi, 'All available papers and memos for all subjects in $1.');
-
-    if (t !== node.nodeValue) node.nodeValue = t;
-  }
-
-  function walk(root){
-    const walker = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT, null);
-    const nodes = [];
-    while (walker.nextNode()) nodes.push(walker.currentNode);
-    nodes.forEach(convertTextNode);
-  }
-
-  function applyFix(){ walk(document.body); }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyFix);
-  else applyFix();
-
-  // Cards are rendered by app.js after load, so observe future changes too.
-  const obs = new MutationObserver(function(){ applyFix(); });
-  obs.observe(document.documentElement, { childList:true, subtree:true, characterData:true });
-})();
-</script>
-
 </body>
 </html>
