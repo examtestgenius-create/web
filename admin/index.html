@@ -6,17 +6,17 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>StudyHub Admin LIVE v4.7</title>
+  <title>StudyHub Admin LIVE v4.8</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.v4.7.css?v=4.7.0">
+  <link rel="stylesheet" href="admin.v4.8.css?v=4.8.1">
 </head>
 <body>
   <div class="app">
     <aside class="side">
       <div class="brand">StudyHub<br>Admin</div>
-      <div class="version-pill">LIVE API v4.7</div>
+      <div class="version-pill">LIVE API v4.8</div>
       <nav class="nav">
         <a href="#" class="active" data-page="dashboard">Dashboard</a>
         <a href="#" data-page="orders">Orders</a>
@@ -33,7 +33,8 @@
       <div class="topbar">
         <div>
           <h1 id="title">Dashboard</h1>
-          <p id="apiStatus" class="muted">LIVE API mode — waiting for backend response…</p>
+          <p id="apiStatus" class="muted">LIVE API v4.8 loaded. Waiting for backend response…</p>
+          <p id="apiUrl" class="api-url"></p>
         </div>
         <div class="top-actions">
           <button class="btn secondary" id="refreshBtn" type="button">Refresh</button>
@@ -41,10 +42,10 @@
           <a class="btn ghost" href="../index.html">Public Site</a>
         </div>
       </div>
-      <section id="content"><div class="empty">Loading LIVE backend data…</div></section>
+      <section id="content"><div class="empty">Admin JavaScript loaded. Starting backend test…</div></section>
     </main>
   </div>
-  <script src="../config.js?v=4.7.0"></script>
-  <script src="admin.v4.7.js?v=4.7.0"></script>
+  <script src="../config.js?v=4.8.1"></script>
+  <script src="admin.v4.8.js?v=4.8.1"></script>
 </body>
 </html>
