@@ -1,0 +1,1 @@
+function action(x){alert(x+' will call Apps Script admin API in production.')}document.querySelectorAll('[data-page]').forEach(a=>a.onclick=e=>{e.preventDefault();document.getElementById('title').textContent=a.textContent;});

@@ -1,0 +1,1 @@
+Upload the CONTENTS of this folder to the root of your GitHub Pages repository. Do not upload the Apps Script backend folder to GitHub if it contains secrets. This frontend contains no PayFast secrets.
