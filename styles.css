@@ -21,3 +21,96 @@
   background:#101f35 !important;
   color:#a9b8d5 !important;
 }
+/* StudyHub Custom Dropdown Fix v2
+   Paste this at the BOTTOM of styles.css.
+*/
+.sh-native-hidden{
+  position:absolute !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+  width:1px !important;
+  height:1px !important;
+  min-height:1px !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+.sh-select{
+  position:relative;
+  width:100%;
+  z-index:30;
+}
+.sh-select-button{
+  width:100%;
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px;
+  background:rgba(255,255,255,.07);
+  color:var(--text);
+  font:inherit;
+  font-weight:900;
+  cursor:pointer;
+  text-align:left;
+}
+.sh-select-button:focus,
+.sh-select.open .sh-select-button{
+  outline:none;
+  border-color:rgba(125,184,255,.65);
+  box-shadow:0 0 0 3px rgba(22,119,255,.20);
+}
+.sh-select-arrow{
+  color:#cae2ff;
+  font-size:14px;
+}
+.sh-select-list{
+  display:none;
+  position:absolute;
+  left:0;
+  right:0;
+  top:calc(100% + 8px);
+  max-height:310px;
+  overflow:auto;
+  background:#101f35;
+  border:1px solid rgba(180,210,255,.22);
+  border-radius:16px;
+  box-shadow:0 22px 55px rgba(0,0,0,.42);
+  padding:6px;
+  z-index:99999;
+}
+.sh-select.open .sh-select-list{
+  display:block;
+}
+.sh-select-option{
+  width:100%;
+  display:block;
+  border:0;
+  border-radius:12px;
+  background:transparent;
+  color:#eef6ff;
+  padding:11px 12px;
+  text-align:left;
+  font:inherit;
+  font-weight:850;
+  cursor:pointer;
+}
+.sh-select-option:hover,
+.sh-select-option:focus{
+  background:rgba(22,119,255,.28);
+  color:#ffffff;
+  outline:none;
+}
+.sh-select-option.selected{
+  background:linear-gradient(135deg,rgba(22,119,255,.95),rgba(124,58,237,.95));
+  color:#ffffff;
+}
+@media(max-width:980px){
+  .sh-select-list{
+    position:relative;
+    top:8px;
+  }
+}
+
