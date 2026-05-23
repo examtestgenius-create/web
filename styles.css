@@ -28,6 +28,203 @@
   position:absolute !important;
   opacity:0 !important;
   pointer-events:none !important;
+/* StudyHub Mobile Readability Fix
+   Paste this at the VERY BOTTOM of styles.css.
+   It keeps the desktop look, but makes phone/tablet reading easier.
+*/
+
+/* Better default reading on small screens */
+@media (max-width: 760px){
+  body{
+    font-size:16px;
+    line-height:1.55;
+    overflow-x:hidden;
+  }
+
+  .container{
+    width:min(100% - 22px, 1180px);
+  }
+
+  .site-header{
+    position:sticky;
+    top:0;
+  }
+
+  .nav{
+    padding:10px 0;
+  }
+
+  .brand-logo{
+    height:46px;
+    border-radius:14px;
+  }
+
+  nav{
+    display:flex;
+    gap:9px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  nav a{
+    font-size:13px;
+    padding:7px 8px;
+  }
+
+  .hero{
+    padding:42px 0 26px;
+  }
+
+  .hero h1,
+  .section-head h1,
+  .section-head h2{
+    font-size:clamp(2rem, 10vw, 2.85rem);
+    line-height:1.04;
+    letter-spacing:-.035em;
+  }
+
+  .hero p,
+  .muted,
+  .card p,
+  .card li,
+  .section-head p{
+    font-size:1rem;
+    line-height:1.58;
+  }
+
+  .section{
+    padding:42px 0;
+  }
+
+  .grade-grid,
+  .featured-grid,
+  .cards,
+  .steps,
+  .stat-row{
+    grid-template-columns:1fr !important;
+    gap:14px;
+  }
+
+  .grade-grid button,
+  .card,
+  .filter-panel,
+  .checkout-card,
+  .summary,
+  .legal,
+  .success-box{
+    border-radius:22px;
+    padding:18px;
+  }
+
+  .card h3{
+    font-size:1.18rem;
+    line-height:1.22;
+  }
+
+  .badge,
+  .eyebrow{
+    font-size:11px;
+    padding:7px 10px;
+  }
+
+  .price,
+  .big-price{
+    font-size:1.45rem;
+  }
+
+  .card-bottom,
+  .actions,
+  .hero-actions,
+  .delivery-block{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+    align-items:stretch;
+  }
+
+  .btn{
+    width:100%;
+    min-height:48px;
+    padding:13px 16px;
+    font-size:1rem;
+  }
+
+  /* Filter/search panel mobile improvements */
+  .filter-panel{
+    grid-template-columns:1fr !important;
+    gap:13px;
+    margin-bottom:18px;
+  }
+
+  .filter-panel label,
+  .form label{
+    font-size:.95rem;
+    gap:7px;
+  }
+
+  .filter-panel input,
+  .filter-panel select,
+  .form input,
+  .form textarea{
+    min-height:52px;
+    font-size:16px; /* prevents iPhone zoom-on-focus */
+    padding:14px 15px;
+    border-radius:16px;
+  }
+
+  .filter-panel input::placeholder{
+    color:#bfd0eb;
+    opacity:1;
+  }
+
+  /* Keep dropdown options readable on mobile/desktop */
+  .filter-panel select{
+    color:#eef6ff;
+    background:rgba(255,255,255,.09);
+    color-scheme:light;
+  }
+
+  .filter-panel select option,
+  .filter-panel select optgroup{
+    background:#ffffff !important;
+    color:#111827 !important;
+    font-weight:700 !important;
+  }
+
+  .filter-panel select option:checked{
+    background:#dbeafe !important;
+    color:#111827 !important;
+  }
+
+  /* Prevent cards from looking cramped */
+  .featured-grid .card,
+  .cards .card{
+    min-width:0;
+  }
+
+  .footer-row{
+    display:grid;
+    gap:10px;
+    text-align:center;
+  }
+}
+
+/* Mid-size tablet polish */
+@media (min-width:761px) and (max-width:1050px){
+  .container{
+    width:min(100% - 28px, 1180px);
+  }
+  .filter-panel{
+    grid-template-columns:1fr 1fr;
+  }
+  .featured-grid,
+  .cards,
+  .steps,
+  .grade-grid{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
   width:1px !important;
   height:1px !important;
   min-height:1px !important;
