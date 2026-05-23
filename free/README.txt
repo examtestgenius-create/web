@@ -1,1 +1,0 @@
-Place free downloads here: study-timetable.pdf, exam-tips.pdf, sample-paper.zip
