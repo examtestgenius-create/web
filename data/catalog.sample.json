@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "sku": "SH-G12-MATHEMATICS-2024-SS",
+      "title": "StudyHub Single Subject - Grade 12 Mathematics 2024",
+      "bundle_type": "Single Subject",
+      "grade": "12",
+      "subject_or_all": "Mathematics",
+      "year_or_range": "2024",
+      "price_cents": 4900,
+      "file_count": 2,
+      "enabled": "TRUE",
+      "zip_url": "sample-not-live"
+    },
+    {
+      "sku": "SH-G11-ALL-2024-SY",
+      "title": "StudyHub Single Year - Grade 11 All Subjects 2024",
+      "bundle_type": "Single Year",
+      "grade": "11",
+      "subject_or_all": "ALL",
+      "year_or_range": "2024",
+      "price_cents": 9900,
+      "file_count": 20,
+      "enabled": "TRUE",
+      "zip_url": "sample-not-live"
+    }
+  ]
+}
