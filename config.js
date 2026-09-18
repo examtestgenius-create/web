@@ -1,10 +1,15 @@
+/* StudyHub LIVE configuration.
+ * Replace the placeholder below with the current Apps Script Web App /exec URL.
+ */
+window.STUDYHUB_CONFIG = Object.freeze({
+  apiBaseUrl: 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE',
+  liveCatalogUrl: 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE?api=catalogPublic',
+  webappUrl: 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE'
+});
 
 /* Free-product display and delivery correction. */
 (function () {
   const cfg = window.STUDYHUB_CONFIG || {};
-  const moneyText = cents => Number(cents || 0) === 0
-    ? 'FREE'
-    : new Intl.NumberFormat('en-ZA', {style:'currency', currency:'ZAR'}).format(Number(cents) / 100);
 
   function replacePriceTbc(root) {
     const walker = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT);
@@ -19,8 +24,9 @@
 
   async function getLiveProduct() {
     const sku = new URL(location.href).searchParams.get('sku') || '';
-    if (!sku || !cfg.liveCatalogUrl) return null;
+    if (!sku || !cfg.liveCatalogUrl || cfg.liveCatalogUrl.includes('PASTE_YOUR')) return null;
     const response = await fetch(cfg.liveCatalogUrl, {cache:'no-store'});
+    if (!response.ok) throw new Error('Catalog HTTP ' + response.status);
     const json = await response.json();
     const rows = json.data || json.items || json.packages || json || [];
     return (Array.isArray(rows) ? rows : []).find(row => String(row.sku || row.SKU) === sku) || null;
@@ -32,13 +38,11 @@
     try {
       const product = await getLiveProduct();
       if (!product || Number(product.price_cents || 0) !== 0) return;
-
       replacePriceTbc(document.body);
       document.querySelectorAll('.product-price, #checkoutPrice').forEach(el => {
         el.textContent = 'FREE';
         el.classList.add('free-price');
       });
-
       if (path.endsWith('/package.html')) {
         const buy = [...document.querySelectorAll('a,button')].find(el => /buy package/i.test(el.textContent || ''));
         if (buy) {
@@ -48,7 +52,6 @@
           buy.rel = 'noopener';
         }
       }
-
       if (path.endsWith('/checkout.html')) {
         const form = document.getElementById('checkoutForm');
         const intro = document.getElementById('checkoutIntro');
