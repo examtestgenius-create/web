@@ -1,7 +1,13 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>StudyHub Admin</title><link rel="stylesheet" href="admin.css"></head><body>
-<header><div><strong>StudyHub Admin</strong><small>Orders, payments and delivery</small></div><a href="../index.html">Open website</a></header>
-<main><section class="connect-panel"><label>Apps Script API URL<input id="api" type="url" placeholder="https://script.google.com/macros/s/.../exec"></label><label>Admin token<input id="token" type="password" placeholder="ADMIN_API_TOKEN"></label><button id="connect">Connect</button></section>
-<section id="stats" class="stats"></section>
-<section class="toolbar"><input id="search" placeholder="Search order, email, SKU or status"><select id="statusFilter"><option value="ALL">All payment statuses</option><option>PENDING</option><option>COMPLETE</option><option>MANUAL_PAID</option><option>CANCELLED</option><option>ITN_FAILED</option></select><button id="refresh">Refresh</button></section>
-<div id="message" class="message">Connect to load orders.</div><section id="orders" class="orders"></section></main>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>StudyHub Admin Control Centre</title><link rel="stylesheet" href="admin.css"></head><body>
+<header><div><strong>StudyHub Admin Control Centre</strong><small>Orders, payments, delivery, catalog and reports</small></div><div class="header-actions"><button id="lock">Lock</button><a href="../index.html">Open website</a></div></header>
+<main>
+<section id="loginPanel" class="connect-panel"><label>Apps Script API URL<input id="api" type="url" autocomplete="url"></label><label>Admin token<input id="token" type="password" autocomplete="current-password" placeholder="Private Admin token"></label><button id="connect">Unlock Admin</button></section>
+<section id="adminShell" hidden>
+<div id="stats" class="stats"></div>
+<nav class="tabs"><button class="active" data-tab="orders">Orders</button><button data-tab="catalog">Catalog</button><button data-tab="reports">Reports</button><button data-tab="system">System</button></nav>
+<section id="ordersTab" class="tab-panel"><div class="toolbar"><input id="search" placeholder="Search order, customer email, name, SKU or status"><select id="statusFilter"><option value="ALL">All payment statuses</option><option>PENDING</option><option>COMPLETE</option><option>MANUAL_PAID</option><option>REFUNDED</option><option>CANCELLED</option><option>ITN_FAILED</option></select><button id="refresh">Refresh</button><button id="exportOrders" class="secondary">Export CSV</button></div><div id="message" class="message">Connect to load orders.</div><section id="orders" class="orders"></section></section>
+<section id="catalogTab" class="tab-panel" hidden><div class="toolbar"><input id="catalogSearch" placeholder="Search SKU, title, grade or subject"><select id="catalogState"><option value="ALL">All catalog items</option><option value="LIVE">Live</option><option value="READY">Ready</option><option value="HIDDEN">Hidden</option></select><button id="refreshCatalog">Refresh</button><button id="exportCatalog" class="secondary">Export CSV</button></div><section id="catalogList" class="orders"></section></section>
+<section id="reportsTab" class="tab-panel" hidden><div class="report-grid" id="reports"></div></section>
+<section id="systemTab" class="tab-panel" hidden><div id="system" class="system-card"></div></section>
+</section></main>
 <script src="../config.js"></script><script src="admin.js"></script></body></html>

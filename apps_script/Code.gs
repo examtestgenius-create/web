@@ -11,10 +11,19 @@ function doGet(e){const p=(e&&e.parameter)||{},api=p.api||'health';try{
  if(api==='catalogPublic')return out({ok:true,data:catalogPublic()});
  if(api==='checkout')return out(createCheckout(p));
  if(api==='orderStatus')return out(orderStatus(p.order_id||''));
- if(api==='adminSummary')return out({ok:true,data:adminSummary(p)});
- if(api==='adminAction')return out({ok:true,data:adminAction(p)});
- return out({ok:false,error:'Unknown API'});
+ return out({ok:false,error:'Unknown or protected API'});
 }catch(x){log('API_ERROR',api,'ERROR',String(x));return out({ok:false,error:String(x.message||x)})}}
-function doPost(e){try{return ContentService.createTextOutput(handleItn((e&&e.parameter)||{}))}catch(x){log('PAYFAST_ITN','doPost','ERROR',String(x));return ContentService.createTextOutput('ERROR')}}
+function doPost(e){
+ try{
+  const body=String((e&&e.postData&&e.postData.contents)||'').trim();
+  if(body&&body.charAt(0)==='{'){
+   const p=JSON.parse(body),api=String(p.api||'');
+   if(api==='adminSummary')return out({ok:true,data:adminSummary(p)});
+   if(api==='adminAction')return out({ok:true,data:adminAction(p)});
+   return out({ok:false,error:'Unknown protected API'});
+  }
+  return ContentService.createTextOutput(handleItn((e&&e.parameter)||{}));
+ }catch(x){log('POST_ERROR','doPost','ERROR',String(x));return out({ok:false,error:String(x.message||x)})}
+}
 function health(){return{time:new Date().toISOString(),sheet:db().getName(),mode:props().getProperty('PAYFAST_MODE')||'SANDBOX',discovery:props().getProperty('SL_IMPORT_RUNNING')||'FALSE',downloads:props().getProperty('DL_RUNNING')||'FALSE',bundles:props().getProperty('BUNDLE_JOB_ENABLED')||'FALSE'}}
-function catalogPublic(){const s=db().getSheetByName(APP.C);return s?objects(s).filter(x=>String(x.published).toUpperCase()==='TRUE'&&String(x.zip_status).toUpperCase()==='READY'&&x.zip_url):[]}
+function catalogPublic(){const s=db().getSheetByName(APP.C);return s?objects(s).filter(x=>String(x.published).toUpperCase()==='TRUE'&&String(x.enabled===undefined?'TRUE':x.enabled).toUpperCase()!=='FALSE'&&String(x.zip_status).toUpperCase()==='READY'&&x.zip_url):[]}
