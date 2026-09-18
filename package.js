@@ -1,4 +1,60 @@
+const cfg = window.STUDYHUB_CONFIG || {};
+const val = (o,...keys) => { for (const k of keys) if (o && o[k] !== undefined && o[k] !== null && o[k] !== '') return o[k]; return ''; };
+const money = cents => Number(cents || 0) === 0 ? 'FREE' : new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR'}).format(Number(cents)/100);
+const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const wanted = new URL(location.href).searchParams.get('sku') || '';
 
-const cfg=window.STUDYHUB_CONFIG||{};function val(o,...ks){for(const k of ks){if(o&&o[k]!==undefined&&o[k]!==null&&o[k]!=='')return o[k]}return ''}function cents(o){return Number(val(o,'price_cents','Price_Cents')||0)}function money(o){const c=typeof o==='object'?cents(o):Number(o||0);return c?new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR'}).format(c/100):'Price TBC'}function sku(o){return val(o,'sku','SKU')}function type(o){return val(o,'bundle_type','Bundle_Type','type')||'Package'}function grade(o){return val(o,'grade','Grade')}function subject(o){return val(o,'subject_or_all','Subject_Name','subject_name')||'ALL'}function yr(o){return val(o,'year_or_range','Coverage_To_Year','year')||'2022+'}function files(o){return val(o,'file_count','Included_File_Count')||0}async function fetchCatalog(){const urls=[cfg.liveCatalogUrl,cfg.fallbackCatalogUrl].filter(Boolean);let last='';for(const url of urls){try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();let data=j.data||j.items||j.packages||j;return Array.isArray(data)?data:(data.items||data.packages||[])}catch(e){last=e.message}}throw new Error(last||'Catalog unavailable')}
+async function fetchCatalog(){
+  if (!cfg.liveCatalogUrl) throw new Error('Live Catalog URL is not configured.');
+  const response = await fetch(cfg.liveCatalogUrl,{cache:'no-store'});
+  if (!response.ok) throw new Error('HTTP '+response.status);
+  const json = await response.json();
+  if (json.ok === false) throw new Error(json.error || 'Catalog request failed.');
+  const data = json.data || json.items || json.packages || json || [];
+  return Array.isArray(data) ? data : [];
+}
 
-const wanted=new URL(location.href).searchParams.get('sku')||'';async function init(){const st=document.getElementById('detailStatus'),root=document.getElementById('packageDetailRoot');if(!wanted){st.innerHTML='<span class="eyebrow">Package detail</span><h2>Missing SKU</h2>';return}try{const rows=await fetchCatalog();const o=rows.find(x=>String(sku(x))===wanted);if(!o)throw Error('Not found');st.innerHTML=`<span class="eyebrow">Package detail</span><h2>${val(o,'title','Title')||wanted}</h2><p>Ready for secure PayFast checkout.</p>`;root.innerHTML=`<div class="detail-layout"><section class="detail-panel card-surface"><h3>${wanted}</h3><p class="product-note">${val(o,'notes','Notes')||'Organised exam paper and memo bundle, delivered as a ZIP after payment confirmation.'}</p><div class="badge-row"><span class="badge">${type(o)}</span><span class="badge">Grade ${grade(o)}</span><span class="badge">${subject(o)}</span></div><div class="detail-meta-list"><div class="detail-meta-item"><strong>Year/range</strong><span>${yr(o)}</span></div><div class="detail-meta-item"><strong>Files</strong><span>${files(o)}</span></div><div class="detail-meta-item"><strong>Delivery</strong><span>ZIP after PayFast confirmation</span></div></div></section><aside class="detail-panel card-surface"><h3>Get this package</h3><div class="product-price">${money(o)}</div><a class="btn btn-primary" href="checkout.html?sku=${encodeURIComponent(wanted)}">Buy package</a><a class="btn btn-secondary" href="index.html#packages">Back</a></aside></div>`}catch(e){st.innerHTML='<span class="eyebrow">Package detail</span><h2>Package not found</h2><p>Run catalog build or check SKU.</p>'}}init();
+async function init(){
+  const heading = document.getElementById('detailStatus');
+  const root = document.getElementById('packageDetailRoot');
+  if (!wanted) {
+    heading.innerHTML = '<span class="eyebrow">Bundle detail</span><h1>Missing bundle SKU</h1><p>Return to the live Catalog and select a bundle.</p>';
+    return;
+  }
+  try {
+    const rows = await fetchCatalog();
+    const item = rows.find(row => String(val(row,'sku','SKU')) === wanted);
+    if (!item) throw new Error('Bundle not found in the live Catalog.');
+    const title = val(item,'title','Title') || wanted;
+    const grade = val(item,'grade','Grade');
+    const subject = val(item,'subject_or_all','subject_name') || 'All subjects';
+    const years = val(item,'year_or_range','year') || 'Available years';
+    const type = val(item,'bundle_type','type') || 'Bundle';
+    const pairs = Number(val(item,'pair_count') || 0);
+    const files = Number(val(item,'file_count') || 0);
+    const description = val(item,'description','notes') || 'Verified exam papers and matching memos, organised for focused revision.';
+    heading.innerHTML = `<span class="eyebrow">Verified ZIP bundle</span><h1>${esc(title)}</h1><p>Review the exact package before secure checkout.</p>`;
+    root.innerHTML = `
+      <div class="detail-layout">
+        <article class="detail-card card-surface">
+          <div class="detail-card-top"><span class="bundle-badge">${esc(type)}</span><span class="ready-badge"><i></i> ZIP ready</span></div>
+          <h2>${esc(subject)}</h2><p class="detail-description">${esc(description)}</p>
+          <div class="detail-badges"><span>Grade ${esc(grade)}</span><span>${esc(years)}</span><span>${esc(subject)}</span></div>
+          <div class="detail-stats"><div><strong>${pairs}</strong><small>verified paper + memo pairs</small></div><div><strong>${files}</strong><small>files in ZIP</small></div><div><strong>Digital</strong><small>delivery after confirmation</small></div></div>
+          <div class="detail-note"><strong>What you receive</strong><p>A downloadable ZIP containing the listed verified papers and matching memos, plus a manifest describing the included records.</p></div>
+        </article>
+        <aside class="purchase-card card-surface">
+          <span class="purchase-label">Secure digital purchase</span>
+          <div class="purchase-price">${money(val(item,'price_cents'))}</div>
+          <p>Pay securely through PayFast. The download is released after payment confirmation.</p>
+          <a class="btn btn-primary btn-wide" href="checkout.html?sku=${encodeURIComponent(wanted)}">Continue to secure checkout</a>
+          <a class="btn btn-light btn-wide" href="index.html#packages">Back to bundles</a>
+          <small>Need help? <a href="mailto:examtestgenius@gmail.com?subject=${encodeURIComponent('StudyHub bundle help: '+wanted)}">Contact StudyHub support</a>.</small>
+        </aside>
+      </div>`;
+  } catch (error) {
+    heading.innerHTML = `<span class="eyebrow">Bundle detail</span><h1>Bundle unavailable</h1><p>${esc(error.message)}</p>`;
+    root.innerHTML = '<a class="btn btn-primary" href="index.html#packages">Return to bundles</a>';
+  }
+}
+init();
