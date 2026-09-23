@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>StudyHub Admin Control Centre</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root{--navy:#061a3d;--blue:#3275ff;--bg:#f3f7ff;--card:#fff;--text:#071a3d;--muted:#66758a;--red:#c52a38;--green:#137a45}
+    *{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:linear-gradient(145deg,#edf4ff,#fff);color:var(--text);min-height:100vh}
+    .top{height:82px;background:var(--navy);color:#fff;display:flex;align-items:center;padding:0 28px;box-shadow:0 8px 30px #061a3d33}.top b{font-size:23px}.top span{margin-left:auto;font-size:13px;color:#cbd8ee}
+    .wrap{max-width:920px;margin:0 auto;padding:52px 20px}.card{background:var(--card);border:1px solid #dbe5f2;border-radius:28px;padding:42px;box-shadow:0 22px 70px #1d4a8a1c;text-align:center}
+    .mark{width:62px;height:62px;margin:0 auto 18px;border-radius:18px;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:900;font-size:22px}.card h1{font-size:31px;margin:0 0 12px}.lead{font-size:17px;line-height:1.55;color:var(--muted);max-width:650px;margin:0 auto 28px}
+    #googleButton{display:flex;justify-content:center;min-height:44px}.status{margin:24px auto 0;max-width:620px;padding:13px 16px;border-radius:14px;background:#eef4ff;color:#27466f;font-weight:700}.status.error{background:#fff0f1;color:var(--red)}.status.ok{background:#ebfaf1;color:var(--green)}
+    .hidden{display:none!important}.admin{display:none;text-align:left}.admin.show{display:block}.login.hidden{display:none}.adminHead{display:flex;align-items:center;gap:12px;margin-bottom:22px}.adminHead h2{margin:0}.spacer{flex:1}.btn{border:0;border-radius:12px;background:var(--navy);color:#fff;padding:11px 16px;font-weight:800;cursor:pointer}.panel{border:1px solid #dbe5f2;border-radius:18px;padding:20px;background:#f9fbff}.session{font-size:13px;color:var(--muted)}
+    @media(max-width:600px){.card{padding:28px 18px}.card h1{font-size:25px}.top{padding:0 16px}.top b{font-size:18px}}
+  </style>
+</head>
+<body>
+  <header class="top"><b>StudyHub Admin Control Centre</b><span>Authorized Google accounts only</span></header>
+  <main class="wrap">
+    <section class="card login" id="loginPanel">
+      <div class="mark">SH</div>
+      <h1>Admin sign in</h1>
+      <p class="lead">Sign in using an authorized Google account. An email address alone does not grant access.</p>
+      <div id="googleButton"></div>
+      <div class="status" id="loginStatus">Checking Google login configuration...</div>
+    </section>
+
+    <section class="card admin" id="adminPanel">
+      <div class="adminHead"><div class="mark" style="margin:0">SH</div><div><h2>Admin access granted</h2><div class="session" id="sessionText"></div></div><div class="spacer"></div><button class="btn" onclick="signOutAdmin()">Sign out</button></div>
+      <div class="panel" id="existingAdminApp">
+        <b>Admin Control Centre ready.</b>
+        <p>Move the existing Admin dashboard markup into this panel, or call the existing dashboard loader after successful sign-in.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SESSION_KEY='studyhub_admin_session';
+    let googleClientId='';
+    document.addEventListener('DOMContentLoaded',startAdminLogin);
+
+    function setStatus(message,type){const el=document.getElementById('loginStatus');el.textContent=message;el.className='status'+(type?' '+type:'')}
+    function runServer(name,args,onSuccess,onFailure){
+      if(!(window.google&&google.script&&google.script.run)){setStatus('This page must be served by the deployed Apps Script Web App.','error');return}
+      let runner=google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure||function(e){setStatus((e&&e.message)||String(e),'error')});
+      runner[name].apply(runner,args||[]);
+    }
+    function startAdminLogin(){
+      const saved=sessionStorage.getItem(SESSION_KEY)||'';
+      if(saved){runServer('ADMIN_SESSION_STATUS',[saved],function(r){if(r&&r.authenticated){openAdmin(r,saved)}else{sessionStorage.removeItem(SESSION_KEY);loadGoogleConfig()}});return}
+      loadGoogleConfig();
+    }
+    function loadGoogleConfig(){runServer('ADMIN_GOOGLE_LOGIN_CONFIG',[],function(c){
+      if(!c||!c.ok){setStatus((c&&c.message)||'Google Admin login is not configured.','error');return}
+      googleClientId=c.googleClientId;waitForGoogleIdentity();
+    })}
+    function waitForGoogleIdentity(){
+      if(!(window.google&&google.accounts&&google.accounts.id)){setTimeout(waitForGoogleIdentity,150);return}
+      google.accounts.id.initialize({client_id:googleClientId,callback:handleGoogleCredential,auto_select:false,cancel_on_tap_outside:true});
+      google.accounts.id.renderButton(document.getElementById('googleButton'),{theme:'outline',size:'large',type:'standard',shape:'pill',text:'signin_with',logo_alignment:'left',width:380});
+      setStatus('Choose the authorized Google account.','');
+    }
+    function handleGoogleCredential(response){
+      setStatus('Verifying the Google account...','');
+      runServer('ADMIN_GOOGLE_SIGN_IN',[response.credential,navigator.userAgent],function(r){
+        if(!r||!r.authenticated){setStatus('This Google account is not authorized.','error');return}
+        sessionStorage.setItem(SESSION_KEY,r.sessionToken);openAdmin(r,r.sessionToken);
+      },function(e){const m=(e&&e.message)||String(e);setStatus(m.indexOf('ADMIN_ACCESS_DENIED')>=0?'This Google account is not authorized for StudyHub Admin.':m,'error')});
+    }
+    function openAdmin(result,token){
+      document.getElementById('loginPanel').classList.add('hidden');document.getElementById('adminPanel').classList.add('show');
+      document.getElementById('sessionText').textContent=result.email+' • Session expires '+new Date(result.expiresAt).toLocaleString();
+      window.STUDYHUB_ADMIN_SESSION_TOKEN=token;
+      if(typeof window.loadAdminDashboard==='function')window.loadAdminDashboard(token);
+    }
+    function signOutAdmin(){
+      const token=sessionStorage.getItem(SESSION_KEY)||'';sessionStorage.removeItem(SESSION_KEY);
+      runServer('ADMIN_GOOGLE_SIGN_OUT',[token],function(){location.reload()},function(){location.reload()});
+    }
+  </script>
+</body>
+</html>
