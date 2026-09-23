@@ -1,13 +1,79 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>StudyHub Admin Control Centre</title><link rel="stylesheet" href="admin.css"></head><body>
-<header><div><strong>StudyHub Admin Control Centre</strong><small>Orders, payments, delivery, catalog and reports</small></div><div class="header-actions"><button id="lock">Lock</button><a href="../index.html">Open website</a></div></header>
-<main>
-<section id="loginPanel" class="connect-panel"><label>Apps Script API URL<input id="api" type="url" autocomplete="url"></label><label>Admin token<input id="token" type="password" autocomplete="current-password" placeholder="Private Admin token"></label><button id="connect">Unlock Admin</button></section>
-<section id="adminShell" hidden>
-<div id="stats" class="stats"></div>
-<nav class="tabs"><button class="active" data-tab="orders">Orders</button><button data-tab="catalog">Catalog</button><button data-tab="reports">Reports</button><button data-tab="system">System</button></nav>
-<section id="ordersTab" class="tab-panel"><div class="toolbar"><input id="search" placeholder="Search order, customer email, name, SKU or status"><select id="statusFilter"><option value="ALL">All payment statuses</option><option>PENDING</option><option>COMPLETE</option><option>MANUAL_PAID</option><option>REFUNDED</option><option>CANCELLED</option><option>ITN_FAILED</option></select><button id="refresh">Refresh</button><button id="exportOrders" class="secondary">Export CSV</button></div><div id="message" class="message">Connect to load orders.</div><section id="orders" class="orders"></section></section>
-<section id="catalogTab" class="tab-panel" hidden><div class="toolbar"><input id="catalogSearch" placeholder="Search SKU, title, grade or subject"><select id="catalogState"><option value="ALL">All catalog items</option><option value="LIVE">Live</option><option value="READY">Ready</option><option value="HIDDEN">Hidden</option></select><button id="refreshCatalog">Refresh</button><button id="exportCatalog" class="secondary">Export CSV</button></div><section id="catalogList" class="orders"></section></section>
-<section id="reportsTab" class="tab-panel" hidden><div class="report-grid" id="reports"></div></section>
-<section id="systemTab" class="tab-panel" hidden><div id="system" class="system-card"></div></section>
-</section></main>
-<script src="../config.js"></script><script src="admin.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>StudyHub Admin Control Centre</title>
+
+  <meta
+    http-equiv="refresh"
+    content="0; url=https://script.google.com/macros/s/AKfycbyaL0g4sF4TWLRjSR1ioLV7J01msJejXMzgSttJzgQr_upEKXkx_tGagwXnLjMuT1bl_A/exec?page=admin"
+  >
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #071b3d;
+      color: #071b3d;
+      font-family: Arial, sans-serif;
+    }
+
+    .card {
+      width: min(540px, calc(100% - 40px));
+      padding: 36px;
+      border-radius: 24px;
+      background: #ffffff;
+      text-align: center;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    p {
+      color: #62718a;
+      line-height: 1.6;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 13px 21px;
+      border-radius: 12px;
+      background: #2f76ff;
+      color: #ffffff;
+      font-weight: 800;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <h1>StudyHub Admin Control Centre</h1>
+
+    <p>
+      Opening the secure Google-authenticated Admin dashboard...
+    </p>
+
+    <a
+      href="https://script.google.com/macros/s/AKfycbyaL0g4sF4TWLRjSR1ioLV7J01msJejXMzgSttJzgQr_upEKXkx_tGagwXnLjMuT1bl_A/exec?page=tinue to Admin
+    </a>
+  </main>
+
+  <script>
+    window.location.replace(
+      'https://script.google.com/macros/s/AKfycbyaL0g4sF4TWLRjSR1ioLV7J01msJejXMzgSttJzgQr_upEKXkx_tGagwXnLjMuT1bl_A/exec?page=admin'
+    );
+  </script>
+</body>
+</html>
